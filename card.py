@@ -8,10 +8,11 @@ class card:
 
     def create_card(name:str):
         cards = pd.read_csv("/home/shepad/projects/onitama/card.txt",index_col="name")
-        return card(name,cards.loc[name][1:27].to_numpy(dtype=np.int16),cards.loc[name][1] == "Blue")
+        return card(name,cards.loc[name][1:27].to_numpy(dtype=bool),cards.loc[name][1] == "Blue")
+    
+    
     def display(self):
         print(self.name)
         print(self.is_stamp_blue)
         print(self.movement_abilities.reshape(5,5))
 
-card.create_card("Tiger").display()
