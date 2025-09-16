@@ -1,14 +1,14 @@
 import numpy as np
 import pandas as pd
-class card:
+class card_obj:
     def __init__(self,name,movement_abilities,is_stamp_blue):
         self.name = name
-        self.movement_abilities = np.argwhere(np.reshape(movement_abilities,(5,5))==True)
+        self.movement_abilities = np.argwhere(np.reshape(movement_abilities,(5,5))==True) - 2
         self.is_stamp_blue = is_stamp_blue
 
     def create_card(name:str):
         cards = pd.read_csv("/home/shepad/projects/onitama/card.txt",index_col="name")
-        return card(name,cards.loc[name][1:27].to_numpy(dtype=bool),cards.loc[name][1] == "Blue")
+        return card_obj(name,cards.loc[name][1:27].to_numpy(dtype=bool),cards.loc[name][1] == "Blue")
     
     def get_flattened_matrix(self)->np.array:
         mat = np.zeros((5,5))
@@ -20,4 +20,4 @@ class card:
         print(self.is_stamp_blue)
         print(np.reshape(self.get_flattened_matrix(),(5,5)))
         
-(card.create_card("Tiger")).display()
+
