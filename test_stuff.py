@@ -16,8 +16,7 @@ def test_update_future_possible_moves_2():
     assert p1.future_possible_moves[0].target == (-2,-1) and p1.future_possible_moves[1].target == (-1,-1) and len(p1.future_possible_moves) == 2
 
 def test_update_future_possible_moves_3():
-    p1 = piece.piece_obj((-2,-2),True,False)
-    c1 = (card.card_obj.create_card("Dragon"))
+    p1 = piece.piece_obj((0,0),True,False)
+    c1 = (card.card_obj.create_card("Cobra"))
     p1.update_future_possible_moves(c1)
-    assert p1.future_possible_moves[0].target == (0,-1) and len(p1.future_possible_moves) == 1
-test_update_future_possible_moves_2()
+    assert p1.future_possible_moves[0].target == (-1,1) and p1.future_possible_moves[1].target == (0,-1) and p1.future_possible_moves[2].target == (1,1) and len(p1.future_possible_moves) == 3
