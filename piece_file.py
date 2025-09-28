@@ -7,10 +7,20 @@ class piece:
         self.is_blue = is_blue
         self.is_master = is_master
         self.future_possible_moves = future_possible_moves
-    def update_future_possible_moves(self,card):
+
+    def create_pieces(n,coordinates,is_b,is_m):
+        lst = []
+        for i in range(n):
+            current_piece = piece(coordinates[i],is_b[i],is_m[i])
+        
+            lst.append(current_piece)
+
+        return lst
+    
+    def update_future_possible_moves(self,card): # returns the future possible moves for 1 card and 1 piece
         if self.is_blue : #blue playing down the board
             return  np.array([
-                move_file.move(card,self.coordinates,(self.coordinates[0] + delta[0], self.coordinates[1] + delta[1]), self)
+                move_file.move(card,(self.coordinates[0] + delta[0], self.coordinates[1] + delta[1]), self)
                 for delta in card.movement_abilities
                 if (
                     (delta[0] + self.coordinates[0] < 3) and
@@ -21,7 +31,7 @@ class piece:
                 ])
         else: # red playing up the board
              return  np.array([
-                move_file.move(card,self.coordinates,(self.coordinates[0] - delta[0], self.coordinates[1] - delta[1]), self)
+                move_file.move(card,(self.coordinates[0] - delta[0], self.coordinates[1] - delta[1]), self)
                 for delta in card.movement_abilities
                 if (
                     (delta[0] - self.coordinates[0] < 3) and
@@ -30,6 +40,10 @@ class piece:
                     (delta[1] - self.coordinates[1] > -3)
                     )
                 ])
+        
+    def add_card(self,card):#adds the future possible moves of a new card after a move and a new card is accesible
+        self.future_possible_moves = np.concatenate((self.future_possible_moves, self.update,self.update_future_possible_moves(card)))
+
              
     def next_moves(self,cards): # returns all future possible moves for the piece with both cards
         self.future_possible_moves = np.concatenate((self.update_future_possible_moves(cards[0]), self.update_future_possible_moves(cards[1])))
