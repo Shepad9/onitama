@@ -8,12 +8,12 @@ class card:
 
     def create_card(name:str):
         cards = pd.read_csv("/home/shepad/projects/onitama/card.txt",index_col="name")
-        return card(name,cards.loc[name][1:27].to_numpy(dtype=bool),cards.loc[name][1] == "Blue")
+        return card(name,cards[name].iloc[1:27].to_numpy(dtype=bool),cards.loc[name].iloc[1] == "Blue")
     
     def create_5_random_cards():
         cards = pd.read_csv("/home/shepad/projects/onitama/card.txt")
         selections = cards.sample(n=5)
-        return np.array([card(selection[0], selection[2:27].to_numpy(dtype=bool),selection[1] == "Blue") for i,selection in selections.iterrows()])
+        return np.array([card(selection.iloc[0], selection.iloc[2:27].to_numpy(dtype=bool),selection.iloc[1] == "Blue") for i,selection in selections.iterrows()])
     
     def get_flattened_matrix(self)->np.array:
         mat = np.zeros((5,5))

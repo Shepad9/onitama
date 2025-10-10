@@ -3,6 +3,7 @@ import card_file
 import move_file
 import piece_file
 
+
 class game_state:
     def __init__(self, player_b_pieces:list[piece_file.piece], player_r_pieces:list[piece_file.piece], player_b_cards, player_r_cards, middle_card:card_file.card, is_b_turn:bool,is_game_live = True):
         self.player_b_pieces = player_b_pieces
@@ -11,7 +12,7 @@ class game_state:
         self.player_r_cards = player_r_cards
         self.middle_card = middle_card
         self.is_b_turn = is_b_turn
-
+        self.is_game_live = is_game_live
 
     
 
@@ -44,9 +45,9 @@ class game_state:
         if is_b == None:
             is_b = self.is_b_turn
         if is_b == True:
-            return self.__get_master_coordinates(not(is_b)) == None or self.__get_master_coordinates(is_b) == (-2,0)
-        else:
             return self.__get_master_coordinates(not(is_b)) == None or self.__get_master_coordinates(is_b) == (2,0)
+        else:
+            return self.__get_master_coordinates(not(is_b)) == None or self.__get_master_coordinates(is_b) == (-2,0)
 
 
 
@@ -62,14 +63,23 @@ class game_state:
         if self.is_win():
             self.is_game_live = False
         # swap cards
-        self.player_b_cards, self.middle_card = self.player_b_cards.remove(move.card).append(self.middle_card), move.card
+        if self.is_b_turn:
+            self.player_b_cards.remove(move.card)
+            self.player_b_cards.append(self.middle_card)
+        else:
+            self.player_r_cards.remove(move.card)
+            self.player_r_cards.append(self.middle_card)
+         
+        self.middle_card = move.card
         # generate new future possible moves
         if self.is_b_turn:
             move.piece.future_possible_moves = move.piece.next_moves(self.player_b_cards)
-            self.player_b_pieces = [piece.add_card(self.player_b_cards[1]) for piece in self.player_b_pieces]
+            for piece in self.player_r_pieces:
+                piece.future_possible_moves = piece.add_card(self.player_b_cards[1])
         else:
             move.piece.future_possible_moves = move.piece.next_moves(self.player_r_cards)
-            self.player_r_pieces = [piece.add_card(self.player_r_cards[1]) for piece in self.player_r_pieces]
+            for piece in self.player_r_pieces:
+                piece.future_possible_moves = piece.add_card(self.player_r_cards[1])
         # pass play to opposition
         self.is_b_turn = not(self.is_b_turn)
         
@@ -90,19 +100,8 @@ class game_state:
     def display(self): #temporary before gui
         for card in self.player_b_cards:
             card.display()
-        board = np.reshape(np.array(["."]*25),(5,5))
-        for piece in self.player_b_pieces:
-            if piece.is_master == True:
-                board[piece.coordinates[0]+2][piece.coordinates[1]+2] = "B"
-            else:
-                board[piece.coordinates[0]+2][piece.coordinates[1]+2] = "b"
-        for piece in self.player_r_pieces:
-            if piece.is_master == True:
-                board[piece.coordinates[0]+2][piece.coordinates[1]+2] = "R"
-            else:
-                board[piece.coordinates[0]+2][piece.coordinates[1]+2] = "r"
-        print("board")
-        print(board)
+        
+         
         for card in self.player_r_cards:
             card.display()
         print("is is blue turn", self.is_b_turn)

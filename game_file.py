@@ -3,6 +3,8 @@ import move_file
 import game_state_file
 import piece_file
 import card_file
+import player_file
+import gui_file
 
 class game:
     def __init__(self, current_game_state, initial_game_state, player_b, player_r, move_stack = []):
@@ -16,9 +18,14 @@ class game:
         b_pieces = piece_file.piece.create_pieces(5,[(-2,0),(-2,-2),(-2,-1),(-2,1),(-2,2)],[True,True,True,True,True],[True,False,False,False,False])
         r_pieces = piece_file.piece.create_pieces(5,[(2,0),(2,-2),(2,-1),(2,1),(2,2)],[False,False,False,False,False],[True,False,False,False,False])
         cards = card_file.card.create_5_random_cards()
-        g = game_state_file.game_state(b_pieces,r_pieces,[cards[0],cards[1]],[cards[2],cards[3]],cards[4],True) #write some code to determine who moves first
-        g.b_pieces = [piece.next_moves(g.player_b_cards) for piece in g.player_b_pieces] #use this to update all cards future possible moves in actual code
-        g.r_pieces = [piece.next_moves(g.player_r_cards) for piece in g.player_r_pieces]
+        g = game_state_file.game_state(b_pieces,r_pieces,[cards[0],cards[1]],[cards[2],cards[3]],cards[4],cards[4].is_stamp_blue) 
+        for piece in g.player_b_pieces:
+            piece.future_possible_moves = piece.next_moves(g.player_b_cards)#use this to update all cards future possible moves in actual code
+        for piece in g.player_r_pieces:
+            piece.future_possible_moves = piece.next_moves(g.player_r_cards)
+        gui_file.gui_display(g)
+
+            
         return game(g, g, blue, red)
 
 
@@ -30,8 +37,9 @@ class game:
 
     def play_game(self): #  test progress game_state
         while self.current_game_state.is_game_live == True:
-            move = self.__get_active_player.get_move(self.current_game_state) # get move
+            move = self.__get_active_player().get_move(self.current_game_state) # get move
             self.current_game_state.progress_game_state(move) # progress game_state
+            gui_file.gui_display(self.current_game_state)
             self.move_stack.append(move)
-        print("winner is",self.current_game_state.is_b_turn)
+        print("winner is",not(self.current_game_state.is_b_turn))
 

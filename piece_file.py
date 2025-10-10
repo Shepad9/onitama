@@ -42,13 +42,16 @@ class piece:
                 ])
         
     def add_card(self,card):#adds the future possible moves of a new card after a move and a new card is accesible
-        self.future_possible_moves = np.concatenate((self.future_possible_moves, self.update,self.update_future_possible_moves(card)))
+        return  np.concatenate((self.future_possible_moves, self.update_future_possible_moves(card)))
+        
 
              
     def next_moves(self,cards): # returns all future possible moves for the piece with both cards
-        self.future_possible_moves = np.concatenate((self.update_future_possible_moves(cards[0]), self.update_future_possible_moves(cards[1])))
+        return  np.concatenate((self.update_future_possible_moves(cards[0]), self.update_future_possible_moves(cards[1])))
+        
 
     def is_clash(self,potential_move): #checks whwther the move is blocked by a allied piece
         return  potential_move.target == self.coordinates
+
        
         
