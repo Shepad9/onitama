@@ -105,4 +105,4 @@ def test_is_win_3():
 
 
 gprime = game_file.game.create_random_game(player_file.player(True),player_file.player(False))
-gprime.play_game() # syntax error red pieces in debug
+gprime.play_game()

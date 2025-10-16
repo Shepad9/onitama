@@ -74,7 +74,7 @@ class game_state:
         # generate new future possible moves
         if self.is_b_turn:
             move.piece.future_possible_moves = move.piece.next_moves(self.player_b_cards)
-            for piece in self.player_r_pieces:
+            for piece in self.player_b_pieces:
                 piece.future_possible_moves = piece.add_card(self.player_b_cards[1])
         else:
             move.piece.future_possible_moves = move.piece.next_moves(self.player_r_cards)

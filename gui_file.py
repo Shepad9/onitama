@@ -28,18 +28,31 @@ WIDTH, HEIGHT = 700, 1000
 ROWS, COLS = 5, 5
 SQUARE_SIZE =  60
 
-
+GREY = (88, 94, 99)
 WHITE = (255, 255, 255)
 GREEN = (118, 150, 86)
 BLACK = (0,0,0)
-RED = (184, 8, 8)
-BLUE = (32, 74, 180)
+RED = (209, 0, 0)
+BLUE = (26, 96, 232)
 DARK_GREEN = (13, 158, 61)
 LIGHT_BLUE = (119, 204, 241)
 LIGHT_RED = (234, 80, 80)
-YELLOW_HIGHLIGHT = (227, 218, 138)
-GREEN_HIGHLIGHT = (138, 227, 191)
+YELLOW_HIGHLIGHT = (255, 228, 0)
+GREEN_HIGHLIGHT = (0, 255, 4)
 
+
+up_arrow = pg.transform.scale(
+    pg.image.load("assets/up_arrow.svg"), 
+    (SQUARE_SIZE, SQUARE_SIZE*5)
+    )
+down_arrow = pg.transform.scale(
+    pg.image.load("assets/down_arrow.svg"), 
+    (SQUARE_SIZE, SQUARE_SIZE*5)
+    )
+right_arrow = pg.transform.scale(
+    pg.image.load("assets/right_arrow.svg"), 
+    (SQUARE_SIZE*5, SQUARE_SIZE)
+    )
 
 PIECES_TO_PICTURES = {}
 
@@ -70,7 +83,7 @@ def gui_display(state:game_state_file.game_state, source = None, target = None):
 
     for rowi in range(ROWS):
         for coli in range(COLS):
-            colour = WHITE if (rowi + coli) % 2 == 0 else GREEN
+            colour = WHITE if (rowi + coli) % 2 == 0 else GREY
             pg.draw.rect(window, colour, ((coli*SQUARE_SIZE)+400, (rowi*SQUARE_SIZE)+350, SQUARE_SIZE, SQUARE_SIZE))
             if (rowi-2,coli-2) == source:
                 pg.draw.rect(window, YELLOW_HIGHLIGHT, ((coli*SQUARE_SIZE)+400, (rowi*SQUARE_SIZE)+350, SQUARE_SIZE, SQUARE_SIZE), 4)
@@ -87,6 +100,11 @@ def gui_display(state:game_state_file.game_state, source = None, target = None):
     display_card(np.rot90(state.player_r_cards[0].get_flattened_matrix(), 2), 0, 700, RED)
     display_card(np.rot90(state.player_r_cards[1].get_flattened_matrix(), 2), 400, 700, RED)
     display_card(np.rot90(state.middle_card.get_flattened_matrix()), 0, 350, DARK_GREEN)
+    window.blit(up_arrow, (5, 700))
+    window.blit(up_arrow, (400, 700))
+    window.blit(down_arrow, (5, 0))
+    window.blit(down_arrow, (400, 0))
+    window.blit(right_arrow, (0,352))
     
 
     

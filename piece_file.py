@@ -17,7 +17,7 @@ class piece:
 
         return lst
     
-    def update_future_possible_moves(self,card): # returns the future possible moves for 1 card and 1 piece
+    def update_future_possible_moves(self,card):  # returns the future possible moves for 1 card and 1 piece
         if self.is_blue : #blue playing down the board
             return  np.array([
                 move_file.move(card,(self.coordinates[0] + delta[0], self.coordinates[1] + delta[1]), self)
