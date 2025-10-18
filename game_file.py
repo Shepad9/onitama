@@ -36,10 +36,13 @@ class game:
             return self.player_r
 
     def play_game(self): #  test progress game_state
+       
         while self.current_game_state.is_game_live == True:
             move = self.__get_active_player().get_move(self.current_game_state) # get move
             self.current_game_state.progress_game_state(move) # progress game_state
             gui_file.gui_display(self.current_game_state)
             self.move_stack.append(move)
         print("winner is",not(self.current_game_state.is_b_turn))
+
+
 

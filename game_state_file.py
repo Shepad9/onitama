@@ -48,6 +48,9 @@ class game_state:
             return self.__get_master_coordinates(not(is_b)) == None or self.__get_master_coordinates(is_b) == (2,0)
         else:
             return self.__get_master_coordinates(not(is_b)) == None or self.__get_master_coordinates(is_b) == (-2,0)
+    def update_is_game_live(self):
+        if self.is_win():
+            self.is_game_live = False
 
 
 
@@ -60,8 +63,7 @@ class game_state:
         else:
             self.player_b_pieces = [opposition_piece for opposition_piece in self.player_b_pieces if opposition_piece.coordinates != move.piece.coordinates]
         # win detection
-        if self.is_win():
-            self.is_game_live = False
+        self.update_is_game_live()
         # swap cards
         if self.is_b_turn:
             self.player_b_cards.remove(move.card)

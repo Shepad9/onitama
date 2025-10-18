@@ -37,7 +37,7 @@ def create_pieces(n,coordinates,is_b,is_m):
 def create_game_state(b_pieces,r_pieces,b_cards,r_cards,m_card,is_b):
     return game_state_file.game_state(b_pieces,r_pieces,b_cards,r_cards,m_card,is_b)
 
-def create_g1(): # standard 2 pieces per colour
+def create_g1() -> game_state_file.game_state: # standard 2 pieces per colour
     b_pieces = create_pieces(2,[(1,1),(-1,2)],[True,True],[True,False])
     r_pieces = create_pieces(2,[(0,1),(-1,0)],[False,False],[True,False])
     g1 = create_game_state(b_pieces,r_pieces,[card_file.card.create_card("Elephant"),card_file.card.create_card("Crab")],[card_file.card.create_card("Frog"),card_file.card.create_card("Rooster")],card_file.card.create_card("Horse"),False)
@@ -45,7 +45,7 @@ def create_g1(): # standard 2 pieces per colour
     g1.r_pieces = [piece.next_moves(g1.player_r_cards) for piece in g1.player_r_pieces]
     return g1
 
-def create_g2(): # 2 pieces blue, no pieces red
+def create_g2() -> game_state_file.game_state: # 2 pieces blue, no pieces red
     b_pieces = create_pieces(2,[(1,1),(-1,2)],[True,True],[True,False])
     r_pieces = create_pieces(0,[],[],[])
     g1 = create_game_state(b_pieces,r_pieces,[card_file.card.create_card("Elephant"),card_file.card.create_card("Crab")],[card_file.card.create_card("Frog"),card_file.card.create_card("Rooster")],card_file.card.create_card("Horse"),False)
@@ -53,7 +53,7 @@ def create_g2(): # 2 pieces blue, no pieces red
     g1.r_pieces = [piece.next_moves(g1.player_r_cards) for piece in g1.player_r_pieces]
     return g1
 
-def create_g3(): #blue win no red master
+def create_g3() -> game_state_file.game_state: #blue win no red master
     b_pieces = create_pieces(2,[(1,1),(-1,2)],[True,True],[True,False])
     r_pieces = create_pieces(1,[(2,2)],[False],[False])
     g1 = create_game_state(b_pieces,r_pieces,[card_file.card.create_card("Elephant"),card_file.card.create_card("Crab")],[card_file.card.create_card("Frog"),card_file.card.create_card("Rooster")],card_file.card.create_card("Horse"),True)
@@ -61,7 +61,7 @@ def create_g3(): #blue win no red master
     g1.r_pieces = [piece.next_moves(g1.player_r_cards) for piece in g1.player_r_pieces]
     return g1
 
-def create_g4(): # red win, master in temple
+def create_g4() -> game_state_file.game_state: # red win, master in temple
     b_pieces = create_pieces(2,[(1,1),(-1,2)],[True,True],[True,False])
     r_pieces = create_pieces(2,[(-2,0),(1,-2)],[False,False],[True,False])
     g1 = create_game_state(b_pieces,r_pieces,[card_file.card.create_card("Elephant"),card_file.card.create_card("Crab")],[card_file.card.create_card("Frog"),card_file.card.create_card("Rooster")],card_file.card.create_card("Horse"),False)
@@ -101,8 +101,25 @@ def test_is_win_3():
     g1 = create_g4()
     assert g1.is_win() == True
     
+def test_static_eval_1():
+    g1 = create_g1()
+    g1.update_is_game_live()
+    p1 = player_file.computer(True)
 
+    assert p1.static_evaluation(g1) < 128
+def test_static_eval_2():
+    g1 = create_g3()
+    g1.update_is_game_live()
+    p1 = player_file.computer(True)
 
+    assert p1.static_evaluation(g1) == 127
+def test_static_eval_3():
+    g1 = create_g4()
+    g1.update_is_game_live()
+    p1 = player_file.computer(True)
 
-gprime = game_file.game.create_random_game(player_file.player(True),player_file.player(False))
-gprime.play_game()
+    assert p1.static_evaluation(g1) == -128
+
+test_generate_possible_moves_1()
+#gprime = game_file.game.create_random_game(player_file.player(True),player_file.player(False))
+#gprime.play_game()

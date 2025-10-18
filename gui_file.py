@@ -102,10 +102,9 @@ def gui_display(state:game_state_file.game_state, source = None, target = None):
     display_card(np.rot90(state.middle_card.get_flattened_matrix()), 0, 350, DARK_GREEN)
     window.blit(up_arrow, (5, 700))
     window.blit(up_arrow, (400, 700))
-    window.blit(down_arrow, (5, 0))
-    window.blit(down_arrow, (400, 0))
-    window.blit(right_arrow, (0,352))
-    
+    window.blit(down_arrow, (240, 0))
+    window.blit(down_arrow, (640, 0))
+    window.blit(right_arrow, (0,350))
 
     
     pg.display.flip()
