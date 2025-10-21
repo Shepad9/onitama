@@ -4,6 +4,7 @@ import move_file
 import piece_file
 
 
+
 class game_state:
     def __init__(self, player_b_pieces:list[piece_file.piece], player_r_pieces:list[piece_file.piece], player_b_cards, player_r_cards, middle_card:card_file.card, is_b_turn:bool,is_game_live = True):
         self.player_b_pieces = player_b_pieces
@@ -14,13 +15,6 @@ class game_state:
         self.is_b_turn = is_b_turn
         self.is_game_live = is_game_live
 
-    
-
-
-    def create_game_state(b_pieces,r_pieces,b_cards,r_cards,m_card,is_b):
-        return game_state(b_pieces,r_pieces,b_cards,r_cards,m_card,is_b)
-
-    
 
     def __get_all_occupied_squares(self,is_b=None): # by default func returns the coordinates of the pieces abt to go only
         if is_b == None and self.is_b_turn or is_b == True:
@@ -79,11 +73,12 @@ class game_state:
             for piece in self.player_b_pieces:
                 piece.future_possible_moves = piece.add_card(self.player_b_cards[1])
         else:
-            move.piece.future_possible_moves = move.piece.next_moves(self.player_r_cards)
+            move.piece.future_possible_moves = move.piece.next_moves(self.player_r_cards) #use thsi for testing func 
             for piece in self.player_r_pieces:
                 piece.future_possible_moves = piece.add_card(self.player_r_cards[1])
         # pass play to opposition
         self.is_b_turn = not(self.is_b_turn)
+        
         
     def regress_game_state(self):
         pass
@@ -109,3 +104,17 @@ class game_state:
         print("is is blue turn", self.is_b_turn)
         print("middle card")
         self.middle_card.display()
+
+def create_game_state(b_pieces,r_pieces,b_cards,r_cards,m_card,is_b):
+    return game_state(b_pieces,r_pieces,b_cards,r_cards,m_card,is_b)
+def create_random_game_state():
+    b_pieces = piece_file.piece.create_pieces(5,[(-2,0),(-2,-2),(-2,-1),(-2,1),(-2,2)],[True,True,True,True,True],[True,False,False,False,False])
+    r_pieces = piece_file.piece.create_pieces(5,[(2,0),(2,-2),(2,-1),(2,1),(2,2)],[False,False,False,False,False],[True,False,False,False,False])
+    cards = card_file.card.create_5_random_cards()
+    g = game_state(b_pieces,r_pieces,[cards[0],cards[1]],[cards[2],cards[3]],cards[4],cards[4].is_stamp_blue) 
+    for piece in g.player_b_pieces:
+        piece.future_possible_moves = piece.next_moves(g.player_b_cards)#use this to update all cards future possible moves in actual code
+    for piece in g.player_r_pieces:
+        piece.future_possible_moves = piece.next_moves(g.player_r_cards)
+       
+    return g

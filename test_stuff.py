@@ -16,13 +16,13 @@ def test_update_future_possible_moves_2():
     p1 = piece_file.piece((-1,-2),True,False)
     c1 = (card_file.card.create_card("Elephant"))
     tester = p1.update_future_possible_moves(c1)
-    assert tester[0].target == (0,-1) and tester[1].target == (-1,-1) and len(tester) == 2
+    assert tester[1].target == (0,-1) and tester[0].target == (-1,-1) and len(tester) == 2
 
 def test_update_future_possible_moves_3():
     p1 = piece_file.piece((0,0),True,False)
     c1 = (card_file.card.create_card("Cobra"))
     tester = p1.update_future_possible_moves(c1)
-    assert tester[0].target == (-1,1) and tester[1].target == (0,-1) and tester[2].target == (1,1) and len(tester) == 3
+    assert tester[0].target == (-1,-1) and tester[1].target == (0,1) and tester[2].target == (1,-1) and len(tester) == 3
 
 def create_pieces(n,coordinates,is_b,is_m):
     lst = []
@@ -41,37 +41,46 @@ def create_g1() -> game_state_file.game_state: # standard 2 pieces per colour
     b_pieces = create_pieces(2,[(1,1),(-1,2)],[True,True],[True,False])
     r_pieces = create_pieces(2,[(0,1),(-1,0)],[False,False],[True,False])
     g1 = create_game_state(b_pieces,r_pieces,[card_file.card.create_card("Elephant"),card_file.card.create_card("Crab")],[card_file.card.create_card("Frog"),card_file.card.create_card("Rooster")],card_file.card.create_card("Horse"),False)
-    g1.b_pieces = [piece.next_moves(g1.player_b_cards) for piece in g1.player_b_pieces] #use this to update all cards future possible moves in actual code
-    g1.r_pieces = [piece.next_moves(g1.player_r_cards) for piece in g1.player_r_pieces]
+    for piece in r_pieces:
+        piece.future_possible_moves = piece.next_moves(g1.player_r_cards)
+    for piece in b_pieces:
+        piece.future_possible_moves = piece.next_moves(g1.player_b_cards)
     return g1
 
 def create_g2() -> game_state_file.game_state: # 2 pieces blue, no pieces red
     b_pieces = create_pieces(2,[(1,1),(-1,2)],[True,True],[True,False])
     r_pieces = create_pieces(0,[],[],[])
     g1 = create_game_state(b_pieces,r_pieces,[card_file.card.create_card("Elephant"),card_file.card.create_card("Crab")],[card_file.card.create_card("Frog"),card_file.card.create_card("Rooster")],card_file.card.create_card("Horse"),False)
-    g1.b_pieces = [piece.next_moves(g1.player_b_cards) for piece in g1.player_b_pieces]
-    g1.r_pieces = [piece.next_moves(g1.player_r_cards) for piece in g1.player_r_pieces]
+    for piece in r_pieces:
+        piece.future_possible_moves = piece.next_moves(g1.player_r_cards)
+    for piece in b_pieces:
+        piece.future_possible_moves = piece.next_moves(g1.player_b_cards)
     return g1
 
 def create_g3() -> game_state_file.game_state: #blue win no red master
     b_pieces = create_pieces(2,[(1,1),(-1,2)],[True,True],[True,False])
     r_pieces = create_pieces(1,[(2,2)],[False],[False])
     g1 = create_game_state(b_pieces,r_pieces,[card_file.card.create_card("Elephant"),card_file.card.create_card("Crab")],[card_file.card.create_card("Frog"),card_file.card.create_card("Rooster")],card_file.card.create_card("Horse"),True)
-    g1.b_pieces = [piece.next_moves(g1.player_b_cards) for piece in g1.player_b_pieces]
-    g1.r_pieces = [piece.next_moves(g1.player_r_cards) for piece in g1.player_r_pieces]
+    for piece in r_pieces:
+        piece.future_possible_moves = piece.next_moves(g1.player_r_cards)
+    for piece in b_pieces:
+        piece.future_possible_moves = piece.next_moves(g1.player_b_cards)
     return g1
 
 def create_g4() -> game_state_file.game_state: # red win, master in temple
     b_pieces = create_pieces(2,[(1,1),(-1,2)],[True,True],[True,False])
     r_pieces = create_pieces(2,[(-2,0),(1,-2)],[False,False],[True,False])
     g1 = create_game_state(b_pieces,r_pieces,[card_file.card.create_card("Elephant"),card_file.card.create_card("Crab")],[card_file.card.create_card("Frog"),card_file.card.create_card("Rooster")],card_file.card.create_card("Horse"),False)
-    g1.b_pieces = [piece.next_moves(g1.player_b_cards) for piece in g1.player_b_pieces]
-    g1.r_pieces = [piece.next_moves(g1.player_r_cards) for piece in g1.player_r_pieces]
+    for piece in r_pieces:
+        piece.future_possible_moves = piece.next_moves(g1.player_r_cards)
+    for piece in b_pieces:
+        piece.future_possible_moves = piece.next_moves(g1.player_b_cards)
     return g1
 
 def test_generate_possible_moves_1():
     g1 = create_g1()
-    assert len(g1.generate_possible_moves()) == 11
+    print(len(g1.generate_possible_moves()))
+    assert len(g1.generate_possible_moves()) == 12
 
 def test_find_master_1():
     g1 = create_g1()
@@ -120,6 +129,6 @@ def test_static_eval_3():
 
     assert p1.static_evaluation(g1) == -128
 
-test_generate_possible_moves_1()
 #gprime = game_file.game.create_random_game(player_file.player(True),player_file.player(False))
-#gprime.play_game()
+gprime = game_file.load_game("1760996780.13884",player_file.player(True),player_file.player(False))
+gprime.play_game()

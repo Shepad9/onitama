@@ -8,7 +8,7 @@ class card:
 
     def create_card(name:str):
         cards = pd.read_csv("/home/shepad/projects/onitama/card.txt",index_col="name")
-        return card(name,cards.loc[name].iloc[1:27].to_numpy(dtype=bool),cards.loc[name].iloc[1] == "Blue")
+        return card(name,cards.loc[name].iloc[1:27].to_numpy(dtype=bool),cards.loc[name]["Stamp"] == "Blue")
     
     def create_5_random_cards():
         cards = pd.read_csv("/home/shepad/projects/onitama/card.txt")
@@ -23,5 +23,7 @@ class card:
     def display(self):
         print(self.name)
         print(np.reshape(self.get_flattened_matrix(),(5,5)))
+    def __eq__(self, other):
+        return self.name == other.name
         
 

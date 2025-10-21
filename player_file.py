@@ -1,13 +1,21 @@
 import numpy as np
 import game_state_file
-import game_file
 import move_file
 import gui_file
+
+GAME_WIN_SCORE = 128
+
+
 class player:
     def __init__(self,is_blue): 
         self.is_blue = is_blue
     def get_move(self,state:game_state_file.game_state): 
+        
+
         source = gui_file.gui_select_square()
+        if type(source) == str:
+            return source
+            
         
         if self.is_blue:
             find_piece = [piece for piece in state.player_b_pieces if piece.coordinates == source] # do some error handlig in imput for gui
@@ -19,7 +27,7 @@ class player:
         else:
             piece = find_piece[0]
 
-        gui_file.gui_display(state, source)
+        gui_file.game_display(state, source)
 
         print("source selected")
             
@@ -27,7 +35,7 @@ class player:
 
         print("target selected")
 
-        gui_file.gui_display(state, source, target)
+        gui_file.game_display(state, source, target)
         card_finder = gui_file.get_card()
           
         if self.is_blue and card_finder[0] == 0:
@@ -52,6 +60,9 @@ class player:
 
 
 class computer(player):
+
+    
+
     def __init__(self, is_blue, depth = 3, weights = {"total pieces": 10, "piece progression": 1, "master progression": 2}):
         super().__init__(is_blue)
         self.first_depth = depth
@@ -67,12 +78,12 @@ class computer(player):
     def static_evaluation(self, state:game_state_file.game_state): # red is the minimizimg player
         if state.is_game_live:
             return self.__total_piece_eval(state)*self.weights["total pieces"] + self.__piece_progression_eval(state)*self.weights["piece progression"] + self.__master_progression_eval(state)*self.weights["master progression"]
-        return 127 if state.is_b_turn else -128
+        return GAME_WIN_SCORE if state.is_b_turn else -GAME_WIN_SCORE
 
     def __quiescence_search(self,state:game_state_file.game_state):
         pass
         
-    def get_move(self, state:game_state_file.game_state, current_line:list[move_file.move] = [], best_line:list[move_file.move] = [], depth = 3,  alpha = -128, beta = 127): 
+    def get_move(self, state:game_state_file.game_state, current_line:list[move_file.move] = [], best_line:list[move_file.move] = [], depth = 3,  alpha = -GAME_WIN_SCORE, beta = GAME_WIN_SCORE): 
         """
         nega max function call: main searching algorithm
         args:

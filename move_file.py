@@ -6,4 +6,6 @@ class move:
         self.piece = piece
     def __eq__(self, other):
         return self.card == other.card and list(self.target) == list(other.target) and self.piece == other.piece
+    
+   
         

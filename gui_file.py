@@ -1,9 +1,10 @@
-import pygame as pg
+import pygame
 import sys
 import numpy as np
 import game_state_file
 import piece_file
 import card_file
+
 
 
 def get_board(state:game_state_file.game_state):
@@ -21,12 +22,15 @@ def get_board(state:game_state_file.game_state):
     return board
 
 
-pg.init()
+pygame.init()
 
-
-WIDTH, HEIGHT = 700, 1000
+WIDTH, HEIGHT = 700, 1100
 ROWS, COLS = 5, 5
 SQUARE_SIZE =  60
+
+window = pygame.display.set_mode((WIDTH, HEIGHT))
+pygame.display.set_caption("Onitama game")
+
 
 GREY = (88, 94, 99)
 WHITE = (255, 255, 255)
@@ -40,29 +44,33 @@ LIGHT_RED = (234, 80, 80)
 YELLOW_HIGHLIGHT = (255, 228, 0)
 GREEN_HIGHLIGHT = (0, 255, 4)
 
+FONT = pygame.font.SysFont("Comic Sans MS", 30)
+save_surface = FONT.render("Save", True, BLACK)
+save_button = pygame.draw.rect(window, WHITE, (0,1000,150,50))
 
-up_arrow = pg.transform.scale(
-    pg.image.load("assets/up_arrow.svg"), 
+up_arrow = pygame.transform.scale(
+    pygame.image.load("assets/up_arrow.svg"), 
     (SQUARE_SIZE, SQUARE_SIZE*5)
     )
-down_arrow = pg.transform.scale(
-    pg.image.load("assets/down_arrow.svg"), 
+down_arrow = pygame.transform.scale(
+    pygame.image.load("assets/down_arrow.svg"), 
     (SQUARE_SIZE, SQUARE_SIZE*5)
     )
-right_arrow = pg.transform.scale(
-    pg.image.load("assets/right_arrow.svg"), 
+right_arrow = pygame.transform.scale(
+    pygame.image.load("assets/right_arrow.svg"), 
     (SQUARE_SIZE*5, SQUARE_SIZE)
     )
 
 PIECES_TO_PICTURES = {}
 
 for piece in ["bk", "bp", "wk", "wp"]:
-    PIECES_TO_PICTURES[piece] = pg.transform.scale(
-    pg.image.load(f"assets/{piece}.svg"), 
+    PIECES_TO_PICTURES[piece] = pygame.transform.scale(
+    pygame.image.load(f"assets/{piece}.svg"), 
     (SQUARE_SIZE, SQUARE_SIZE)
     )
-window = pg.display.set_mode((WIDTH, HEIGHT))
-pg.display.set_caption("Onitama game")
+
+
+
 
 def display_card(card_matrix, x , y, position_colour):
     
@@ -71,9 +79,9 @@ def display_card(card_matrix, x , y, position_colour):
             colour = position_colour if (item == 1) else WHITE
             if (rowi,coli) == (2,2):
                 colour = BLACK
-            pg.draw.rect(window, colour, ((coli*SQUARE_SIZE)+x, (rowi*SQUARE_SIZE)+y, SQUARE_SIZE, SQUARE_SIZE))
+            pygame.draw.rect(window, colour, ((coli*SQUARE_SIZE)+x, (rowi*SQUARE_SIZE)+y, SQUARE_SIZE, SQUARE_SIZE))
 
-def gui_display(state:game_state_file.game_state, source = None, target = None):
+def game_display(state:game_state_file.game_state, source = None, target = None):
     
     if state.is_b_turn:
         window.fill(LIGHT_BLUE)
@@ -84,11 +92,11 @@ def gui_display(state:game_state_file.game_state, source = None, target = None):
     for rowi in range(ROWS):
         for coli in range(COLS):
             colour = WHITE if (rowi + coli) % 2 == 0 else GREY
-            pg.draw.rect(window, colour, ((coli*SQUARE_SIZE)+400, (rowi*SQUARE_SIZE)+350, SQUARE_SIZE, SQUARE_SIZE))
+            pygame.draw.rect(window, colour, ((coli*SQUARE_SIZE)+400, (rowi*SQUARE_SIZE)+350, SQUARE_SIZE, SQUARE_SIZE))
             if (rowi-2,coli-2) == source:
-                pg.draw.rect(window, YELLOW_HIGHLIGHT, ((coli*SQUARE_SIZE)+400, (rowi*SQUARE_SIZE)+350, SQUARE_SIZE, SQUARE_SIZE), 4)
+                pygame.draw.rect(window, YELLOW_HIGHLIGHT, ((coli*SQUARE_SIZE)+400, (rowi*SQUARE_SIZE)+350, SQUARE_SIZE, SQUARE_SIZE), 4)
             if (rowi-2,coli-2) == target:
-                pg.draw.rect(window, GREEN_HIGHLIGHT, ((coli*SQUARE_SIZE)+400, (rowi*SQUARE_SIZE)+350, SQUARE_SIZE, SQUARE_SIZE), 4)
+                pygame.draw.rect(window, GREEN_HIGHLIGHT, ((coli*SQUARE_SIZE)+400, (rowi*SQUARE_SIZE)+350, SQUARE_SIZE, SQUARE_SIZE), 4)
             board = get_board(state)
             piece = board[rowi][coli]
             if piece != "..":
@@ -100,6 +108,7 @@ def gui_display(state:game_state_file.game_state, source = None, target = None):
     display_card(np.rot90(state.player_r_cards[0].get_flattened_matrix(), 2), 0, 700, RED)
     display_card(np.rot90(state.player_r_cards[1].get_flattened_matrix(), 2), 400, 700, RED)
     display_card(np.rot90(state.middle_card.get_flattened_matrix()), 0, 350, DARK_GREEN)
+    window.blit(save_surface,(save_button.x + 5, save_button.y + 5))
     window.blit(up_arrow, (5, 700))
     window.blit(up_arrow, (400, 700))
     window.blit(down_arrow, (240, 0))
@@ -107,23 +116,27 @@ def gui_display(state:game_state_file.game_state, source = None, target = None):
     window.blit(right_arrow, (0,350))
 
     
-    pg.display.flip()
+    pygame.display.flip()
 
 
 
 def gui_select_square():
     running = True
     while running:
-        for event in pg.event.get():
-            if event.type == pg.QUIT:
-                pg.quit()
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
                 sys.exit()
 
-            if event.type == pg.MOUSEBUTTONDOWN:
-                pos = pg.mouse.get_pos()
-                col = ((pos[0]-400) // SQUARE_SIZE) -2
-                row = ((pos[1]-350) // SQUARE_SIZE) -2
-                return (row, col)
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if save_button.collidepoint(event.pos):
+                    return "save_command"
+                else:
+                    pos = pygame.mouse.get_pos()
+                    col = ((pos[0]-400) // SQUARE_SIZE) -2
+                    row = ((pos[1]-350) // SQUARE_SIZE) -2
+                    return (row, col)
+            
 
 
 
@@ -132,13 +145,13 @@ def gui_select_square():
 def get_card(): # returns tuple (-1,-1) didnt click on a card else first number is is_b second number index of card
     running = True
     while running:
-        for event in pg.event.get():
-            if event.type == pg.QUIT:
-                pg.quit()
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
                 sys.exit()
 
-            if event.type == pg.MOUSEBUTTONDOWN:
-                pos = pg.mouse.get_pos()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                pos = pygame.mouse.get_pos()
                 if pos[0] < 300 and pos[1] < 300:
                     return (0,0)
                 elif pos[0] > 400 and pos[1] < 300:
