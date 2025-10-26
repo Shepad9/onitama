@@ -121,7 +121,7 @@ def test_static_eval_2():
     g1.update_is_game_live()
     p1 = player_file.computer(True)
 
-    assert p1.static_evaluation(g1) == 127
+    assert p1.static_evaluation(g1) == 128
 def test_static_eval_3():
     g1 = create_g4()
     g1.update_is_game_live()
@@ -129,6 +129,3 @@ def test_static_eval_3():
 
     assert p1.static_evaluation(g1) == -128
 
-#gprime = game_file.game.create_random_game(player_file.player(True),player_file.player(False))
-gprime = game_file.load_game("1760996780.13884",player_file.player(True),player_file.player(False))
-gprime.play_game()

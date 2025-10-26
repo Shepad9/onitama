@@ -9,6 +9,9 @@ import card_file
 import player_file
 import gui_file
 
+
+MOVES_TO_UNDO = 2
+
 class game:
     def __init__(self, current_game_state:game_state_file.game_state, initial_game_state:game_state_file.game_state, player_b:player_file.player, player_r:player_file.player, move_stack:list[move_file.move] = []):
         self.current_game_state = current_game_state
@@ -38,24 +41,36 @@ class game:
             if type(move) == str:
                 if move == "save_command":
                     self.save_game()
+                elif move == "undo_command":
+                    self.undo()
                 else:
                     raise Exception("unrecognised internal message")
-            self.move_stack.append(move_to_dict(move))   
-            self.current_game_state.progress_game_state(move) # progress game_state
+            else:
+                self.move_stack.append(move)   
+                self.current_game_state.progress_game_state(move) # progress game_state
             gui_file.game_display(self.current_game_state)
+            
             
         print("winner is",not(self.current_game_state.is_b_turn))
         print(self.move_stack)
 
-    def save_game(self):
+    def save_game(self): # assume files in objecr form
 
         cards = [self.initial_game_state.player_b_cards[0].name,self.initial_game_state.player_b_cards[1].name,self.initial_game_state.player_r_cards[0].name,self.initial_game_state.player_r_cards[1].name,self.initial_game_state.middle_card.name]
-        moves = self.move_stack
+        moves = list([move_to_dict(move) for move in self.move_stack])
         thing_to_save = {"cards": cards, "moves": moves}
         with open (f"saves/{str(time())}.txt","x") as outfile:
             json.dump(thing_to_save,outfile)
             outfile.close()
         exit("file has been created name")
+
+    def undo(self):
+        
+        self.current_game_state = deepcopy(self.initial_game_state)
+        self.move_stack = self.move_stack[:- MOVES_TO_UNDO]
+        for move in self.move_stack:
+            self.current_game_state.progress_game_state(move) # remove  from move stack chamge current game state
+
 
 
 
@@ -71,30 +86,31 @@ def reconstruct_ini_state(cards):
 
 
 def move_to_dict(move):
-    return {"card":move.card.name, "target":move.target, "piece":move.piece.coordinates}#we only take the coords of piece
-def dict_to_move(dict, state):
+    return {"card":move.card.name, "target":move.target, "source":move.source}#we only take the coords of piece
+def dict_to_move(dict):
     card = card_file.card.create_card(dict["card"])
     target = tuple(dict["target"])
-    piece = [piece for piece in (state.player_b_pieces + state.player_r_pieces) if piece.coordinates == tuple(dict["piece"])][0]
-    return move_file.move(card, target, piece)
+    source = tuple(dict["source"])
+    return move_file.move(card, target, source)
 
  
 def create_game(g, blue, red) -> game:
-    return game(g, g, blue, red)
+    g1 = deepcopy(g)
+    return game(g, g1, blue, red)
 
 def load_game(name, blue, red):
     with open(f"saves/{name}.txt") as infile:
         game_string = json.load(infile)
-        cards, moves = game_string["cards"], game_string["moves"]
+        cards, dict_moves = game_string["cards"], game_string["moves"]
         infile.close()
     initial_state = reconstruct_ini_state([card_file.card.create_card(card) for card in cards])
     game = create_game(initial_state, blue, red)
+    moves = [dict_to_move(temp) for temp in dict_moves] # converts the json dict back to object form
     for move in moves:
-        game.current_game_state.progress_game_state(dict_to_move(move, game.current_game_state))
+        game.current_game_state.progress_game_state(move)
     game.move_stack = moves
     gui_file.game_display(game.current_game_state)
     return game
-
 
 
     

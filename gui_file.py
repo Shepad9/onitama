@@ -47,6 +47,8 @@ GREEN_HIGHLIGHT = (0, 255, 4)
 FONT = pygame.font.SysFont("Comic Sans MS", 30)
 save_surface = FONT.render("Save", True, BLACK)
 save_button = pygame.draw.rect(window, WHITE, (0,1000,150,50))
+undo_surface = FONT.render("Undo", True, BLACK)
+undo_button = pygame.draw.rect(window, WHITE, (150,1000,150,50))
 
 up_arrow = pygame.transform.scale(
     pygame.image.load("assets/up_arrow.svg"), 
@@ -109,6 +111,7 @@ def game_display(state:game_state_file.game_state, source = None, target = None)
     display_card(np.rot90(state.player_r_cards[1].get_flattened_matrix(), 2), 400, 700, RED)
     display_card(np.rot90(state.middle_card.get_flattened_matrix()), 0, 350, DARK_GREEN)
     window.blit(save_surface,(save_button.x + 5, save_button.y + 5))
+    window.blit(undo_surface,(undo_button.x + 5, undo_button.y + 5))
     window.blit(up_arrow, (5, 700))
     window.blit(up_arrow, (400, 700))
     window.blit(down_arrow, (240, 0))
@@ -131,6 +134,8 @@ def gui_select_square():
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if save_button.collidepoint(event.pos):
                     return "save_command"
+                if undo_button.collidepoint(event.pos):
+                    return "undo_command"
                 else:
                     pos = pygame.mouse.get_pos()
                     col = ((pos[0]-400) // SQUARE_SIZE) -2

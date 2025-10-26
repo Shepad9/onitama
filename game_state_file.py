@@ -21,7 +21,7 @@ class game_state:
             return [piece.coordinates for piece in self.player_b_pieces]
         else:
              return [piece.coordinates for piece in self.player_r_pieces]
-    def __get_master_coordinates(self,is_b=None):# returns None if master not found
+    def get_master_coordinates(self,is_b=None):# returns None if master not found
         if (is_b == None and self.is_b_turn) or is_b == True:
             coords = [piece.coordinates for piece in self.player_b_pieces if piece.is_master == True]
         else:
@@ -39,23 +39,27 @@ class game_state:
         if is_b == None:
             is_b = self.is_b_turn
         if is_b == True:
-            return self.__get_master_coordinates(not(is_b)) == None or self.__get_master_coordinates(is_b) == (2,0)
+            return self.get_master_coordinates(not(is_b)) == None or self.get_master_coordinates(is_b) == (2,0)
         else:
-            return self.__get_master_coordinates(not(is_b)) == None or self.__get_master_coordinates(is_b) == (-2,0)
+            return self.get_master_coordinates(not(is_b)) == None or self.get_master_coordinates(is_b) == (-2,0)
     def update_is_game_live(self):
         if self.is_win():
             self.is_game_live = False
 
 
 
-    def progress_game_state(self,move:move_file.move):
+    def progress_game_state(self,move:move_file.move, should_return = False):
         # update piece coords
-        move.piece.coordinates = move.target
+        if self.is_b_turn:
+            piece = [temp_piece for temp_piece in self.player_b_pieces if temp_piece.coordinates == move.source][0]
+        else:
+            piece = [temp_piece for temp_piece in self.player_r_pieces if temp_piece.coordinates == move.source][0]
+        piece.coordinates = move.target
         # check to see if a piece must be deleted
         if self.is_b_turn:
-            self.player_r_pieces = [opposition_piece for opposition_piece in self.player_r_pieces if opposition_piece.coordinates != move.piece.coordinates]
+            self.player_r_pieces = [opposition_piece for opposition_piece in self.player_r_pieces if opposition_piece.coordinates != piece.coordinates]
         else:
-            self.player_b_pieces = [opposition_piece for opposition_piece in self.player_b_pieces if opposition_piece.coordinates != move.piece.coordinates]
+            self.player_b_pieces = [opposition_piece for opposition_piece in self.player_b_pieces if opposition_piece.coordinates != piece.coordinates]
         # win detection
         self.update_is_game_live()
         # swap cards
@@ -69,15 +73,17 @@ class game_state:
         self.middle_card = move.card
         # generate new future possible moves
         if self.is_b_turn:
-            move.piece.future_possible_moves = move.piece.next_moves(self.player_b_cards)
-            for piece in self.player_b_pieces:
-                piece.future_possible_moves = piece.add_card(self.player_b_cards[1])
+            piece.future_possible_moves = piece.next_moves(self.player_b_cards)
+            for temp_piece in self.player_b_pieces:
+                temp_piece.future_possible_moves = temp_piece.add_card(self.player_b_cards[1])
         else:
-            move.piece.future_possible_moves = move.piece.next_moves(self.player_r_cards) #use thsi for testing func 
-            for piece in self.player_r_pieces:
-                piece.future_possible_moves = piece.add_card(self.player_r_cards[1])
+            piece.future_possible_moves = piece.next_moves(self.player_r_cards) #use thsi for testing func 
+            for temp_piece in self.player_r_pieces:
+                temp_piece.future_possible_moves = temp_piece.add_card(self.player_r_cards[1])
         # pass play to opposition
         self.is_b_turn = not(self.is_b_turn)
+        if should_return:
+            return self
         
         
     def regress_game_state(self):
