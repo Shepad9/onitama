@@ -99,7 +99,7 @@ def create_game(g, blue, red) -> game:
     return game(g, g1, blue, red)
 
 def load_game(name, blue, red):
-    with open(f"saves/{name}.txt") as infile:
+    with open(f"/home/shepad/projects/onitama/saves/{name}") as infile:
         game_string = json.load(infile)
         cards, dict_moves = game_string["cards"], game_string["moves"]
         infile.close()
@@ -109,7 +109,7 @@ def load_game(name, blue, red):
     for move in moves:
         game.current_game_state.progress_game_state(move)
     game.move_stack = moves
-    gui_file.game_display(game.current_game_state)
+    gui_file.game_display(game.current_game_state, is_file_cycling = True)
     return game
 
 

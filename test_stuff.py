@@ -84,19 +84,19 @@ def test_generate_possible_moves_1():
 
 def test_find_master_1():
     g1 = create_g1()
-    assert g1._game_state__get_master_coordinates() == (0,1)
+    assert g1.get_master_coordinates() == (0,1)
 
 def test_find_master_2():
     g1 = create_g1()
-    assert g1._game_state__get_master_coordinates(True) == (1,1)
+    assert g1.get_master_coordinates(True) == (1,1)
 
 def test_find_master_3():
     g2 = create_g2()
-    assert g2._game_state__get_master_coordinates(False) == None
+    assert g2.get_master_coordinates(False) == None
 
 def test_find_master_4():
     g3 = create_g3()
-    assert g3._game_state__get_master_coordinates(False) == None
+    assert g3.get_master_coordinates(False) == None
 
 def test_is_win_1():
     g1 = create_g1()

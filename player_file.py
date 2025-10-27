@@ -25,11 +25,11 @@ class player:
 
         gui_file.game_display(state, source)
 
-        print("source selected")
+        
             
         target = gui_file.gui_select_square()
 
-        print("target selected")
+       
 
         gui_file.game_display(state, source, target)
         card_finder = gui_file.get_card()
@@ -66,9 +66,31 @@ class computer(player):
     
     
 
-    def __init__(self, is_blue, weights = {"total pieces": 10, "piece progression": 1, "master to temple": 2}):
+    def __init__(self, is_blue, weights = {"total pieces": 10, "piece progression": 1, "master to temple": 2}, noise = 0):
         super().__init__(is_blue)
         self.weights = weights
+        self.noise = noise
+
+    def all_accesible_squares(self, state:game_state_file.game_state):
+        moves = state.generate_possible_moves()
+        return set([move.target for move in moves])
+
+    def is_quiet(self, state:game_state_file.game_state):
+        possible_targets = self.all_accesible_squares(state)
+        if state.is_b_turn == True and (state.get_master_coordinates(False) in possible_targets or (2,0) in possible_targets):
+            return False
+        if state.is_b_turn == False and (state.get_master_coordinates(True) in possible_targets or (-2,0) in possible_targets):
+            return False
+        return True
+
+    def quiescence_search(self, state:game_state_file.game_state):
+        if self.is_quiet(state):
+            return self.static_evaluation(state)
+        moves = state.generate_possible_moves()
+        for potential_move in moves:
+            working_state = deepcopy(state) # prevents errors caused by python passing references rather than values
+            working_state.progress_game_state(potential_move)
+            return self.quiescence_search(working_state)
 
     def move_ordering_heuristic(self, move:move_file.move, is_b): # lower returns yield high priorities to be checked first
         if is_b:
@@ -95,10 +117,8 @@ class computer(player):
                 return GAME_WIN_SCORE
             else:
                 return -GAME_WIN_SCORE
-        return self.__total_piece_eval(state)*self.weights["total pieces"] + self.__piece_progression_eval(state)*self.weights["piece progression"] + self.__master_to_temple_eval(state)*self.weights["master to temple"]
+        return self.__total_piece_eval(state)*self.weights["total pieces"] + self.__piece_progression_eval(state)*self.weights["piece progression"] + self.__master_to_temple_eval(state)*self.weights["master to temple"] + random.randint(-5,5) * self.noise
 
-    def __quiescence_search(self,state:game_state_file.game_state):
-        pass
 
     def maximiser(
             self, 
@@ -109,8 +129,10 @@ class computer(player):
             beta = GAME_WIN_SCORE + 1
         ): 
         # always return dict (score, asc line, best line)
-        if depth == 0 or state.is_win():
-            return {"score":self.static_evaluation(state), "asc_line":[],"best_line": best_line} # return dict
+        if depth == 0:
+            return {"score":self.quiescence_search(state), "asc_line":[],"best_line": best_line} # return dict
+        if state.is_win():
+            return {"score":self.static_evaluation(state), "asc_line":[],"best_line": best_line}
         all_moves = self.heuristic_move_sorter(state.generate_possible_moves(), state.is_b_turn)
         for potential_move in all_moves:
             working_state = deepcopy(state) # prevents errors caused by python passing references rather than values
@@ -145,8 +167,10 @@ class computer(player):
             beta = GAME_WIN_SCORE + 1
         ): 
         # always return tuple (score, asc line, best line)
-        if depth == 0 or state.is_win():
-            return {"score":self.static_evaluation(state), "asc_line":[],"best_line": best_line} # return dict
+        if depth == 0:
+            return {"score":self.quiescence_search(state), "asc_line":[],"best_line": best_line} # return dict
+        if state.is_win():
+            return {"score":self.static_evaluation(state), "asc_line":[],"best_line": best_line}
         all_moves = self.heuristic_move_sorter(state.generate_possible_moves(), state.is_b_turn)
         for potential_move in all_moves:
             working_state = deepcopy(state) # prevents errors caused by python passing references rather than values
@@ -172,12 +196,12 @@ class computer(player):
         
     def get_move(self, state:game_state_file.game_state):
         
-        #sleep(TIME_TO_MOVE)
+        sleep(TIME_TO_MOVE)
         if state.is_b_turn:
             ret = self.maximiser(state)
         else:
             ret = self.minimiser(state)
-        print(ret["score"])
+        
         move = ret["best_line"][-1]
         return move_file.move(move.card ,tuple([int(x) for x in move.target]), move.source)
         

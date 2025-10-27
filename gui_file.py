@@ -46,9 +46,41 @@ GREEN_HIGHLIGHT = (0, 255, 4)
 
 FONT = pygame.font.SysFont("Comic Sans MS", 30)
 save_surface = FONT.render("Save", True, BLACK)
+next_file_surface = FONT.render("Next file", True, BLACK)
 save_button = pygame.draw.rect(window, WHITE, (0,1000,150,50))
+
 undo_surface = FONT.render("Undo", True, BLACK)
+correct_file_surface = FONT.render("Use this file", True, BLACK)
 undo_button = pygame.draw.rect(window, WHITE, (150,1000,150,50))
+
+computer_surface = FONT.render("computer players: ", True, BLACK)
+computer_blue_marker = pygame.draw.rect(window, WHITE, (150, 150, 150, 50))
+computer_red_marker = pygame.draw.rect(window, WHITE, (150, 700, 150, 50))
+
+player_surface = FONT.render("human player", True, BLACK)
+player_button_blue = pygame.draw.rect(window, WHITE, (450, 150, 150, 50))
+player_button_red = pygame.draw.rect(window, WHITE, (450, 700, 150, 50))
+
+diff1_surface = FONT.render("diificulty level 1", True, BLACK)
+diff1_button_blue = pygame.draw.rect(window, WHITE, (150, 300, 150, 50))
+diff1_button_red = pygame.draw.rect(window, WHITE, (150, 850, 150, 50))
+
+diff2_surface = FONT.render("diificulty level 2", True, BLACK)
+diff2_button_blue = pygame.draw.rect(window, WHITE, (150, 350, 150, 50))
+diff2_button_red = pygame.draw.rect(window, WHITE, (150, 900, 150, 50))
+
+diff3_surface = FONT.render("diificulty level 3", True, BLACK)
+diff3_button_blue = pygame.draw.rect(window, WHITE, (150, 400, 150, 50))
+diff3_button_red = pygame.draw.rect(window, WHITE, (150, 950, 150, 50))
+
+confirm_surface = FONT.render("Confirm", True, BLACK)
+confirm_button = pygame.draw.rect(window, WHITE, (550,1000,150,50))
+
+new_game_surface = FONT.render("New game", True, BLACK)
+new_game_button = pygame.draw.rect(window, WHITE, (300,150,150,50))
+
+load_game_surface = FONT.render("Load game", True, BLACK)
+load_game_button = pygame.draw.rect(window, WHITE, (300,800,150,50))
 
 up_arrow = pygame.transform.scale(
     pygame.image.load("assets/up_arrow.svg"), 
@@ -83,12 +115,14 @@ def display_card(card_matrix, x , y, position_colour):
                 colour = BLACK
             pygame.draw.rect(window, colour, ((coli*SQUARE_SIZE)+x, (rowi*SQUARE_SIZE)+y, SQUARE_SIZE, SQUARE_SIZE))
 
-def game_display(state:game_state_file.game_state, source = None, target = None):
-    
-    if state.is_b_turn:
-        window.fill(LIGHT_BLUE)
+def game_display(state:game_state_file.game_state, source = None, target = None, is_file_cycling = False):
+    if is_file_cycling:
+        window.fill(WHITE)
     else:
-        window.fill(LIGHT_RED)
+        if state.is_b_turn:
+            window.fill(LIGHT_BLUE)
+        else:
+            window.fill(LIGHT_RED)
     
 
     for rowi in range(ROWS):
@@ -110,8 +144,12 @@ def game_display(state:game_state_file.game_state, source = None, target = None)
     display_card(np.rot90(state.player_r_cards[0].get_flattened_matrix(), 2), 0, 700, RED)
     display_card(np.rot90(state.player_r_cards[1].get_flattened_matrix(), 2), 400, 700, RED)
     display_card(np.rot90(state.middle_card.get_flattened_matrix()), 0, 350, DARK_GREEN)
-    window.blit(save_surface,(save_button.x + 5, save_button.y + 5))
-    window.blit(undo_surface,(undo_button.x + 5, undo_button.y + 5))
+    if is_file_cycling:
+        window.blit(next_file_surface,(save_button.x + 5, save_button.y + 5))
+        window.blit(correct_file_surface,(undo_button.x + 5, undo_button.y + 5))
+    else:
+        window.blit(save_surface,(save_button.x + 5, save_button.y + 5))
+        window.blit(undo_surface,(undo_button.x + 5, undo_button.y + 5))
     window.blit(up_arrow, (5, 700))
     window.blit(up_arrow, (400, 700))
     window.blit(down_arrow, (240, 0))
@@ -120,7 +158,6 @@ def game_display(state:game_state_file.game_state, source = None, target = None)
 
     
     pygame.display.flip()
-
 
 
 def gui_select_square():
@@ -167,3 +204,93 @@ def get_card(): # returns tuple (-1,-1) didnt click on a card else first number 
                     return (1,1)
                 else:
                     return (-1,-1)
+                
+def get_players(blue = "player", red = "player"):
+    window.fill(LIGHT_BLUE)
+    pygame.draw.rect(window, LIGHT_RED, (0,550, 700, 550))
+    window.blit(computer_surface,(computer_blue_marker.x + 5, computer_blue_marker.y + 5))
+    window.blit(computer_surface,(computer_red_marker.x + 5, computer_red_marker.y + 5))
+    window.blit(diff1_surface,(diff1_button_blue.x + 5, diff1_button_blue.y + 5))
+    window.blit(diff1_surface,(diff1_button_red.x + 5, diff1_button_red.y + 5))
+    window.blit(diff2_surface,(diff2_button_blue.x + 5, diff2_button_blue.y + 5))
+    window.blit(diff2_surface,(diff2_button_red.x + 5, diff2_button_red.y + 5))
+    window.blit(diff3_surface,(diff3_button_blue.x + 5, diff3_button_blue.y + 5))
+    window.blit(diff3_surface,(diff3_button_red.x + 5, diff3_button_red.y + 5))
+    window.blit(player_surface,(player_button_blue.x + 5, player_button_blue.y + 5))
+    window.blit(player_surface,(player_button_red.x + 5, player_button_red.y + 5))
+    window.blit(confirm_surface, (confirm_button.x + 5, confirm_button.y + 5))
+    if blue == "diff1":
+        pygame.draw.rect(window, YELLOW_HIGHLIGHT, (diff1_button_blue.x, diff1_button_blue.y, 150, 50), 4)
+    elif blue == "diff2":
+        pygame.draw.rect(window, YELLOW_HIGHLIGHT, (diff2_button_blue.x, diff2_button_blue.y, 150, 50), 4)
+    elif blue == "diff3":
+        pygame.draw.rect(window, YELLOW_HIGHLIGHT, (diff3_button_blue.x, diff3_button_blue.y, 150, 50), 4)
+    elif blue == "player":
+        pygame.draw.rect(window, YELLOW_HIGHLIGHT, (player_button_blue.x, player_button_blue.y, 150, 50), 4)
+    if red == "diff1":
+        pygame.draw.rect(window, YELLOW_HIGHLIGHT, (diff1_button_red.x, diff1_button_red.y, 150, 50), 4)
+    elif red == "diff2":
+        pygame.draw.rect(window, YELLOW_HIGHLIGHT, (diff2_button_red.x, diff2_button_red.y, 150, 50), 4)
+    elif red == "diff3":
+        pygame.draw.rect(window, YELLOW_HIGHLIGHT, (diff3_button_red.x, diff3_button_red.y, 150, 50), 4)
+    elif red == "player":
+        pygame.draw.rect(window, YELLOW_HIGHLIGHT, (player_button_red.x, player_button_red.y, 150, 50), 4)
+    pygame.display.flip()
+    running = True
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if diff1_button_blue.collidepoint(event.pos):
+                    return get_players("diff1", red)
+                elif diff2_button_blue.collidepoint(event.pos):
+                    return get_players("diff2", red)
+                elif diff3_button_blue.collidepoint(event.pos):
+                    return get_players("diff3", red)
+                elif player_button_blue.collidepoint(event.pos):
+                    return get_players("player", red)
+                elif diff1_button_red.collidepoint(event.pos):
+                    return get_players(blue, "diff1")
+                elif diff2_button_red.collidepoint(event.pos):
+                    return get_players(blue, "diff2")
+                elif diff3_button_red.collidepoint(event.pos):
+                    return get_players(blue, "diff3")
+                elif player_button_red.collidepoint(event.pos):
+                    return get_players(blue, "player")
+                elif confirm_button.collidepoint(event.pos):
+                    return (blue, red)
+    
+def get_game_file_type(): # returns is new game
+    window.fill(GREY)
+    window.blit(new_game_surface,(new_game_button.x + 5, new_game_button.y + 5))
+    window.blit(load_game_surface,(load_game_button.x + 5, load_game_button.y + 5))
+    pygame.display.flip()
+    running = True
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if new_game_button.collidepoint(event.pos):
+                    return True
+                elif load_game_button.collidepoint(event.pos):
+                    return False
+            
+def is_correct_game_file():
+    running = True
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if save_button.collidepoint(event.pos):
+                    return False
+                elif undo_button.collidepoint(event.pos):
+                    return True
