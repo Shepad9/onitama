@@ -9,7 +9,7 @@ from copy import copy
  
 GAME_WIN_SCORE = 128
 TIME_TO_MOVE = 2 #seconds
-SEARCH_DEPTH = 3
+SEARCH_DEPTH = 4
 
 
 class player:
@@ -196,7 +196,7 @@ class computer(player):
         
     def get_move(self, state:game_state_file.game_state):
         
-        sleep(TIME_TO_MOVE)
+        #sleep(TIME_TO_MOVE)
         if state.is_b_turn:
             ret = self.maximiser(state)
         else:

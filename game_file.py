@@ -43,6 +43,11 @@ class game:
                     self.save_game()
                 elif move == "undo_command":
                     self.undo()
+                elif move == "hint_command":
+                    move = self.hint()
+                    self.move_stack.append(move)   
+                    self.current_game_state.progress_game_state(move) # progress game_state
+            
                 else:
                     raise Exception("unrecognised internal message")
             else:
@@ -70,6 +75,11 @@ class game:
         self.move_stack = self.move_stack[:- MOVES_TO_UNDO]
         for move in self.move_stack:
             self.current_game_state.progress_game_state(move) # remove  from move stack chamge current game state
+
+    def hint(self):
+        com = player_file.computer(self.current_game_state.is_b_turn)
+        hint_move = com.get_move(self.current_game_state)
+
 
 
 

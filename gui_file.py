@@ -43,6 +43,8 @@ LIGHT_BLUE = (119, 204, 241)
 LIGHT_RED = (234, 80, 80)
 YELLOW_HIGHLIGHT = (255, 228, 0)
 GREEN_HIGHLIGHT = (0, 255, 4)
+YELLOW_HINT = (230, 217, 129)
+GREEN_HINT = (139, 172, 58)
 
 FONT = pygame.font.SysFont("Comic Sans MS", 30)
 save_surface = FONT.render("Save", True, BLACK)
@@ -52,6 +54,9 @@ save_button = pygame.draw.rect(window, WHITE, (0,1000,150,50))
 undo_surface = FONT.render("Undo", True, BLACK)
 correct_file_surface = FONT.render("Use this file", True, BLACK)
 undo_button = pygame.draw.rect(window, WHITE, (150,1000,150,50))
+
+hint_surface = FONT.render("Hint", True, BLACK)
+hint_button = pygame.draw.rect(window, WHITE, (300,1000,150,50))
 
 computer_surface = FONT.render("computer players: ", True, BLACK)
 computer_blue_marker = pygame.draw.rect(window, WHITE, (150, 150, 150, 50))
@@ -115,7 +120,7 @@ def display_card(card_matrix, x , y, position_colour):
                 colour = BLACK
             pygame.draw.rect(window, colour, ((coli*SQUARE_SIZE)+x, (rowi*SQUARE_SIZE)+y, SQUARE_SIZE, SQUARE_SIZE))
 
-def game_display(state:game_state_file.game_state, source = None, target = None, is_file_cycling = False):
+def game_display(state:game_state_file.game_state, source = None, target = None, hint_source = None, hint_target = None, is_file_cycling = False):
     if is_file_cycling:
         window.fill(WHITE)
     else:
@@ -131,8 +136,12 @@ def game_display(state:game_state_file.game_state, source = None, target = None,
             pygame.draw.rect(window, colour, ((coli*SQUARE_SIZE)+400, (rowi*SQUARE_SIZE)+350, SQUARE_SIZE, SQUARE_SIZE))
             if (rowi-2,coli-2) == source:
                 pygame.draw.rect(window, YELLOW_HIGHLIGHT, ((coli*SQUARE_SIZE)+400, (rowi*SQUARE_SIZE)+350, SQUARE_SIZE, SQUARE_SIZE), 4)
-            if (rowi-2,coli-2) == target:
+            elif (rowi-2,coli-2) == target:
                 pygame.draw.rect(window, GREEN_HIGHLIGHT, ((coli*SQUARE_SIZE)+400, (rowi*SQUARE_SIZE)+350, SQUARE_SIZE, SQUARE_SIZE), 4)
+            elif (rowi-2,coli-2) == hint_source:
+                pygame.draw.rect(window, YELLOW_HINT, ((coli*SQUARE_SIZE)+400, (rowi*SQUARE_SIZE)+350, SQUARE_SIZE, SQUARE_SIZE), 4)
+            elif (rowi-2,coli-2) == hint_target:
+                pygame.draw.rect(window, GREEN_HINT, ((coli*SQUARE_SIZE)+400, (rowi*SQUARE_SIZE)+350, SQUARE_SIZE, SQUARE_SIZE), 4)
             board = get_board(state)
             piece = board[rowi][coli]
             if piece != "..":
@@ -150,6 +159,8 @@ def game_display(state:game_state_file.game_state, source = None, target = None,
     else:
         window.blit(save_surface,(save_button.x + 5, save_button.y + 5))
         window.blit(undo_surface,(undo_button.x + 5, undo_button.y + 5))
+        window.blit(hint_surface,(hint_button.x + 5, hint_button.y + 5))
+
     window.blit(up_arrow, (5, 700))
     window.blit(up_arrow, (400, 700))
     window.blit(down_arrow, (240, 0))
@@ -173,6 +184,8 @@ def gui_select_square():
                     return "save_command"
                 if undo_button.collidepoint(event.pos):
                     return "undo_command"
+                if hint_button.collidepoint(event.pos):
+                    return "hint_command"
                 else:
                     pos = pygame.mouse.get_pos()
                     col = ((pos[0]-400) // SQUARE_SIZE) -2

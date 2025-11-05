@@ -1,0 +1,2 @@
+import control
+control.main()

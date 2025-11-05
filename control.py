@@ -53,4 +53,4 @@ def main():
     blue, red = select_players()
     game = select_game_file(blue, red)
     game.play_game()
-main()
+
