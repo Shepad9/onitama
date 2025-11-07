@@ -1,0 +1,1 @@
+{"cards": ["Frog", "Crane", "Crab", "Horse", "Rabbit"], "moves": [{"card": "Crane", "target": [-1, 0], "source": [-2, 0]}, {"card": "Horse", "target": [1, 0], "source": [2, 0]}, {"card": "Frog", "target": [0, 1], "source": [-1, 0]}, {"card": "Crane", "target": [1, -2], "source": [2, -2]}]}

@@ -1,4 +1,8 @@
 import json
+import numpy as np
+import os
+import random
+import pandas as pd
 from copy import deepcopy
 from sys import exit
 from time import time
@@ -9,6 +13,7 @@ import card_file
 import player_file
 import gui_file
 
+#setrecursionlimit(10**6) #not recomended necessary soley for the benchmarking function SRCS_avg to be performed in parralel
 
 MOVES_TO_UNDO = 2
 
@@ -22,7 +27,6 @@ class game:
 
     def create_random_game(blue, red):
         g = game_state_file.create_random_game_state()
-        gui_file.game_display(g)
         g1 = deepcopy(g)    
         return game(g, g1, blue, red)
 
@@ -35,8 +39,8 @@ class game:
             return self.player_r
 
     def play_game(self): #  test progress game_state
-       
-        while self.current_game_state.is_game_live == True:
+        gui_file.game_display(self.current_game_state)
+        while self.current_game_state.is_game_live:
             move = self.__get_active_player().get_move(self.current_game_state) # get move
             if type(move) == str:
                 if move == "save_command":
@@ -76,9 +80,11 @@ class game:
         for move in self.move_stack:
             self.current_game_state.progress_game_state(move) # remove  from move stack chamge current game state
 
-    def hint(self):
+    def hint(self) -> move_file.move:
         com = player_file.computer(self.current_game_state.is_b_turn)
         hint_move = com.get_move(self.current_game_state)
+        gui_file.game_display(self.current_game_state, hint_source=hint_move.source)
+        self.play_game()
 
 
 
@@ -108,8 +114,8 @@ def create_game(g, blue, red) -> game:
     g1 = deepcopy(g)
     return game(g, g1, blue, red)
 
-def load_game(name, blue, red):
-    with open(f"/home/shepad/projects/onitama/saves/{name}") as infile:
+def load_game(name, blue = player_file.player(True), red = player_file.player(False), folder = "saves") -> game:
+    with open(f"/home/shepad/projects/onitama/{folder}/{name}") as infile:
         game_string = json.load(infile)
         cards, dict_moves = game_string["cards"], game_string["moves"]
         infile.close()
@@ -122,8 +128,37 @@ def load_game(name, blue, red):
     gui_file.game_display(game.current_game_state, is_file_cycling = True)
     return game
 
-
+TEST_ACCURACY = 10
+def SRCS(g1):
+    com_b = player_file.computer(True)
+    com_r = player_file.computer(False)
     
+    if g1.is_b_turn:
+        stat = com_b.quiescence_search(g1)
+        dyna = com_b.maximiser(g1)["score"]
+    else:
+        stat = com_r.quiescence_search(g1)
+        dyna = com_r.minimiser(g1)["score"]
+    return  (stat - dyna) ** 2
 
 
 
+
+def SRCS_avg():
+    
+    game_states = []
+
+    for i in range(TEST_ACCURACY):
+        g = game.create_random_game(player_file.full_random(True), player_file.full_random(True))
+        for i in range (random.randint(3,20)):
+
+            move = g._game__get_active_player().get_move(g.current_game_state)
+            g.move_stack.append(move)   
+            g.current_game_state.progress_game_state(move) # get move
+        if g.current_game_state.is_game_live:
+            game_states.append(g.current_game_state)
+    vectorized_SRCS = np.vectorize(SRCS)
+
+    return sum(vectorized_SRCS(np.array(game_states))) / TEST_ACCURACY
+
+print(SRCS_avg())

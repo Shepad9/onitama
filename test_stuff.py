@@ -129,3 +129,27 @@ def test_static_eval_3():
 
     assert p1.static_evaluation(g1) == -128
 
+def test_is_quiet_1():
+    g1 = game_file.load_game("noisy_pos.txt", folder = "test_games").current_game_state
+    p1 = player_file.computer(g1.is_b_turn)
+    assert p1.is_quiet(g1) == False
+
+def test_is_quiet_2():
+    g1 = game_file.load_game("quiet_pos.txt", folder = "test_games").current_game_state
+    p1 = player_file.computer(g1.is_b_turn)
+    assert p1.is_quiet(g1) == True
+
+def test_move_ordering_heuritic_1():
+    p1 = player_file.computer(True)
+    assert  p1.move_ordering_heuristic(move_file.move(card_file.card.create_card("Elephant"),(0,0),(-2,0)), True) == -2
+
+def test_move_ordering_heuritic_2():
+    p1 = player_file.computer(False)
+    assert  p1.move_ordering_heuristic(move_file.move(card_file.card.create_card("Elephant"),(0,0),(-2,0)), False) == 2
+
+def test_heuristic_move_sorter():
+    p1 = player_file.computer(False)
+    m1 = move_file.move(card_file.card.create_card("Elephant"),(0,0),(-2,0))
+    m2 = move_file.move(card_file.card.create_card("Crane"),(2,0),(1,1))
+    assert np.all(p1.heuristic_move_sorter(np.array([m1,m2]),False) == np.array([m2,m1]))
+

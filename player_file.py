@@ -9,7 +9,7 @@ from copy import copy
  
 GAME_WIN_SCORE = 128
 TIME_TO_MOVE = 2 #seconds
-SEARCH_DEPTH = 4
+SEARCH_DEPTH = 3
 
 
 class player:
@@ -58,7 +58,7 @@ class full_random(player):
         super().__init__(is_blue)
 
     def get_move(self, state):
-        sleep(TIME_TO_MOVE)
+        #sleep(TIME_TO_MOVE)
         return random.choice(state.generate_possible_moves())
 
 
@@ -75,7 +75,7 @@ class computer(player):
         moves = state.generate_possible_moves()
         return set([move.target for move in moves])
 
-    def is_quiet(self, state:game_state_file.game_state):
+    def is_quiet(self, state:game_state_file.game_state): # quiet means game cannot be won on the next turn
         possible_targets = self.all_accesible_squares(state)
         if state.is_b_turn == True and (state.get_master_coordinates(False) in possible_targets or (2,0) in possible_targets):
             return False
@@ -92,7 +92,7 @@ class computer(player):
             working_state.progress_game_state(potential_move)
             return self.quiescence_search(working_state)
 
-    def move_ordering_heuristic(self, move:move_file.move, is_b): # lower returns yield high priorities to be checked first
+    def move_ordering_heuristic(self, move:move_file.move, is_b): # higher returns yield high priorities to be checked first
         if is_b:
             return move.source[0] - move.target[0] 
         return move.target[0] - move.source[0]
@@ -206,6 +206,4 @@ class computer(player):
         return move_file.move(move.card ,tuple([int(x) for x in move.target]), move.source)
         
     
-        
-
 
