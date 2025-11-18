@@ -75,23 +75,24 @@ class game_state:
         if self.is_b_turn:
             piece.future_possible_moves = piece.next_moves(self.player_b_cards)
             for temp_piece in self.player_b_pieces:
-                temp_piece.future_possible_moves = temp_piece.add_card(self.player_b_cards[1])
+                if len([potential_move for potential_move in temp_piece.future_possible_moves if potential_move.card == self.player_b_cards[1]]) == 0:
+                    temp_piece.future_possible_moves = temp_piece.add_card(self.player_b_cards[1])
         else:
-            piece.future_possible_moves = piece.next_moves(self.player_r_cards) #use thsi for testing func 
+            piece.future_possible_moves = piece.next_moves(self.player_r_cards)
             for temp_piece in self.player_r_pieces:
-                temp_piece.future_possible_moves = temp_piece.add_card(self.player_r_cards[1])
+                if len([potential_move for potential_move in temp_piece.future_possible_moves if potential_move.card == self.player_r_cards[1]]) == 0:
+                    temp_piece.future_possible_moves = temp_piece.add_card(self.player_r_cards[1])
         # pass play to opposition
         self.is_b_turn = not(self.is_b_turn)
         if should_return:
             return self
         
-        
-    def regress_game_state(self):
-        pass
 
-    def generate_possible_moves(self):
-        occupied = self.__get_all_occupied_squares()
-        if self.is_b_turn:
+    def generate_possible_moves(self, is_b = None):
+        occupied = self.__get_all_occupied_squares(is_b)
+        if is_b == None:
+            is_b = self.is_b_turn
+        if is_b:
             moves = [current_piece.future_possible_moves for current_piece in self.player_b_pieces]
             flat_moves = [item for sublist in moves for item in sublist]
             return np.array([move for move in flat_moves if not(move.target in occupied) and move.card in self.player_b_cards])

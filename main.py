@@ -1,2 +1,2 @@
-import control
-control.main()
+import game_file
+game_file.main()

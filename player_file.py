@@ -7,7 +7,7 @@ from time import sleep
 from copy import deepcopy
 from copy import copy
  
-GAME_WIN_SCORE = 128
+GAME_WIN_SCORE = 512
 TIME_TO_MOVE = 2 #seconds
 SEARCH_DEPTH = 3
 
@@ -66,31 +66,64 @@ class computer(player):
     
     
 
-    def __init__(self, is_blue, weights = {"total pieces": 10, "piece progression": 1, "master to temple": 2}, noise = 0):
+    def __init__(self, is_blue, weights = {"total pieces": 10, "piece progression": 1, "master to temple": 2, "defended pieces" : 3, "attacked squares" : 2}, noise = 0):
         super().__init__(is_blue)
         self.weights = weights
         self.noise = noise
 
-    def all_accesible_squares(self, state:game_state_file.game_state):
-        moves = state.generate_possible_moves()
+    def all_accesible_squares(self, state:game_state_file.game_state, is_b = None):
+        if is_b == None or is_b == state.is_b_turn:
+            moves = state.generate_possible_moves(True)
+            return set([move.target for move in moves])
+        moves = state.generate_possible_moves(False)
         return set([move.target for move in moves])
+    
+    def master_accesible_squares(self, state:game_state_file.game_state, is_b = None):
+        if is_b == None or is_b == state.is_b_turn:
+            moves = state.generate_possible_moves(True)
+            return set([move.target for move in moves if move.source == state.get_master_coordinates(True)])
+        moves = state.generate_possible_moves(False)
+        return set([move.target for move in moves if move.source == state.get_master_coordinates(False)])
+        
+    
+    def __get_b_piece_coords(self,state:game_state_file.game_state):
+        return [piece.coordinates for piece in state.player_b_pieces]
+    
+    def __get_r_piece_coords(self,state:game_state_file.game_state):
+        return [piece.coordinates for piece in state.player_r_pieces]
+
 
     def is_quiet(self, state:game_state_file.game_state): # quiet means game cannot be won on the next turn
-        possible_targets = self.all_accesible_squares(state)
-        if state.is_b_turn == True and (state.get_master_coordinates(False) in possible_targets or (2,0) in possible_targets):
+        master_targets = self.master_accesible_squares(state)
+        if state.is_b_turn == True and (state.get_master_coordinates(False) in master_targets or (2,0) in master_targets):
             return False
-        if state.is_b_turn == False and (state.get_master_coordinates(True) in possible_targets or (-2,0) in possible_targets):
+        if state.is_b_turn == False and (state.get_master_coordinates(True) in master_targets or (-2,0) in master_targets):
             return False
         return True
 
-    def quiescence_search(self, state:game_state_file.game_state):
+    def quiescence_max(self, state:game_state_file.game_state, best_score = -GAME_WIN_SCORE):
         if self.is_quiet(state):
             return self.static_evaluation(state)
         moves = state.generate_possible_moves()
         for potential_move in moves:
             working_state = deepcopy(state) # prevents errors caused by python passing references rather than values
             working_state.progress_game_state(potential_move)
-            return self.quiescence_search(working_state)
+            score = self.quiescence_min(working_state, best_score)
+            if score > best_score:
+                best_score = score
+            return best_score
+
+    def quiescence_min(self, state:game_state_file.game_state, best_score = GAME_WIN_SCORE):
+        if self.is_quiet(state):
+            return self.static_evaluation(state)
+        moves = state.generate_possible_moves()
+        for potential_move in moves:
+            working_state = deepcopy(state) # prevents errors caused by python passing references rather than values
+            working_state.progress_game_state(potential_move)
+            score = self.quiescence_max(working_state, best_score)
+            if score < best_score:
+                best_score = score
+            return best_score
 
     def move_ordering_heuristic(self, move:move_file.move, is_b): # higher returns yield high priorities to be checked first
         if is_b:
@@ -102,7 +135,19 @@ class computer(player):
         return np.take_along_axis(moves, heuristic_move_mask, axis = 0)
 
 
+    def __defended_pieces_eval(self, state:game_state_file.game_state): #pieces cannot be defended multiple times return a value from roughly 10 to - 10
+        blue_possible_targets = self.all_accesible_squares(state, True)
+        defended_blue = len([location for location in blue_possible_targets if location in self.__get_b_piece_coords(state)])
+        red_possible_targets = self.all_accesible_squares(state, False)
+        defended_red = len([location for location in red_possible_targets if location in self.__get_r_piece_coords(state)])
+        return defended_blue - defended_red
+    
+    def __attacked_squares_eval(self, state:game_state_file.game_state): #returns a value from roughly 25 to - 25
+        blue_possible_targets = self.all_accesible_squares(state, True)
+        red_possible_targets = self.all_accesible_squares(state, False)
+        return len(blue_possible_targets) - len (red_possible_targets)
 
+        
     def __total_piece_eval(self, state:game_state_file.game_state): # returns a value from -4 to 4
         return len(state.player_b_pieces) - len(state.player_r_pieces)
     def __piece_progression_eval(self, state:game_state_file.game_state): # return a value from -15 to 15
@@ -117,7 +162,7 @@ class computer(player):
                 return GAME_WIN_SCORE
             else:
                 return -GAME_WIN_SCORE
-        return self.__total_piece_eval(state)*self.weights["total pieces"] + self.__piece_progression_eval(state)*self.weights["piece progression"] + self.__master_to_temple_eval(state)*self.weights["master to temple"] + random.randint(-5,5) * self.noise
+        return self.__total_piece_eval(state)*self.weights["total pieces"] + self.__piece_progression_eval(state)*self.weights["piece progression"] + self.__master_to_temple_eval(state)*self.weights["master to temple"] + self.__defended_pieces_eval(state)*self.weights["defended pieces"] + self.__attacked_squares_eval(state)*self.weights["attacked squares"] +random.randint(-5,5) * self.noise
 
 
     def maximiser(
@@ -130,7 +175,7 @@ class computer(player):
         ): 
         # always return dict (score, asc line, best line)
         if depth == 0:
-            return {"score":self.quiescence_search(state), "asc_line":[],"best_line": best_line} # return dict
+            return {"score":self.quiescence_max(state), "asc_line":[],"best_line": best_line} # return dict
         if state.is_win():
             return {"score":self.static_evaluation(state), "asc_line":[],"best_line": best_line}
         all_moves = self.heuristic_move_sorter(state.generate_possible_moves(), state.is_b_turn)
@@ -168,7 +213,7 @@ class computer(player):
         ): 
         # always return tuple (score, asc line, best line)
         if depth == 0:
-            return {"score":self.quiescence_search(state), "asc_line":[],"best_line": best_line} # return dict
+            return {"score":self.quiescence_min(state), "asc_line":[],"best_line": best_line} # return dict
         if state.is_win():
             return {"score":self.static_evaluation(state), "asc_line":[],"best_line": best_line}
         all_moves = self.heuristic_move_sorter(state.generate_possible_moves(), state.is_b_turn)

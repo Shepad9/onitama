@@ -5,7 +5,7 @@ import random
 import pandas as pd
 from copy import deepcopy
 from sys import exit
-from time import time
+from time import time, sleep
 import move_file
 import game_state_file
 import piece_file
@@ -13,9 +13,10 @@ import card_file
 import player_file
 import gui_file
 
-#setrecursionlimit(10**6) #not recomended necessary soley for the benchmarking function SRCS_avg to be performed in parralel
 
-MOVES_TO_UNDO = 2
+MOVES_TO_UNDO = 2 # can be changed if human vs human
+TIME_FOR_WIN = 1
+
 
 class game:
     def __init__(self, current_game_state:game_state_file.game_state, initial_game_state:game_state_file.game_state, player_b:player_file.player, player_r:player_file.player, move_stack:list[move_file.move] = []):
@@ -27,7 +28,10 @@ class game:
 
     def create_random_game(blue, red):
         g = game_state_file.create_random_game_state()
-        g1 = deepcopy(g)    
+        g1 = deepcopy(g)
+        gui_file.game_display(g)
+        if type(blue) != player_file.computer and type(blue) != player_file.computer:
+            MOVES_TO_UNDO = 1
         return game(g, g1, blue, red)
 
 
@@ -39,7 +43,7 @@ class game:
             return self.player_r
 
     def play_game(self): #  test progress game_state
-        gui_file.game_display(self.current_game_state)
+        
         while self.current_game_state.is_game_live:
             move = self.__get_active_player().get_move(self.current_game_state) # get move
             if type(move) == str:
@@ -50,7 +54,11 @@ class game:
                 elif move == "hint_command":
                     move = self.hint()
                     self.move_stack.append(move)   
-                    self.current_game_state.progress_game_state(move) # progress game_state
+                    self.current_game_state.progress_game_state(move)
+                elif move == "move_command":
+                    move = self.full_hint()
+                    self.move_stack.append(move)   
+                    self.current_game_state.progress_game_state(move)
             
                 else:
                     raise Exception("unrecognised internal message")
@@ -58,10 +66,18 @@ class game:
                 self.move_stack.append(move)   
                 self.current_game_state.progress_game_state(move) # progress game_state
             gui_file.game_display(self.current_game_state)
-            
-            
-        print("winner is",not(self.current_game_state.is_b_turn))
-        print(self.move_stack)
+        self.game_over()
+
+    def game_over(self):
+        sleep(TIME_FOR_WIN)
+        if gui_file.should_review(self.current_game_state.is_b_turn):
+            self.review()
+        else:
+            main()
+    
+    def review(self):
+        pass
+
 
     def save_game(self): # assume files in objecr form
 
@@ -71,7 +87,8 @@ class game:
         with open (f"saves/{str(time())}.txt","x") as outfile:
             json.dump(thing_to_save,outfile)
             outfile.close()
-        exit("file has been created name")
+        main()
+    
 
     def undo(self):
         
@@ -84,6 +101,12 @@ class game:
         com = player_file.computer(self.current_game_state.is_b_turn)
         hint_move = com.get_move(self.current_game_state)
         gui_file.game_display(self.current_game_state, hint_source=hint_move.source)
+        self.play_game()
+
+    def full_hint(self) -> move_file.move:
+        com = player_file.computer(self.current_game_state.is_b_turn)
+        hint_move = com.get_move(self.current_game_state)
+        gui_file.game_display(self.current_game_state, hint_source=hint_move.source, hint_target= hint_move.target)
         self.play_game()
 
 
@@ -128,19 +151,22 @@ def load_game(name, blue = player_file.player(True), red = player_file.player(Fa
     gui_file.game_display(game.current_game_state, is_file_cycling = True)
     return game
 
-TEST_ACCURACY = 10
+TEST_ACCURACY = 100
+MAX_MOVES_FOR_RANDOM = 15
+STAT_MAX = 147
+
 def SRCS(g1):
     com_b = player_file.computer(True)
     com_r = player_file.computer(False)
     
+    
     if g1.is_b_turn:
-        stat = com_b.quiescence_search(g1)
+        stat = com_b.quiescence_max(g1)
         dyna = com_b.maximiser(g1)["score"]
     else:
-        stat = com_r.quiescence_search(g1)
-        dyna = com_r.minimiser(g1)["score"]
-    return  (stat - dyna) ** 2
-
+        stat = com_r.quiescence_min(g1)
+        dyna = com_r.minimiser(g1)["score"] 
+    return  abs((stat - dyna) / STAT_MAX)
 
 
 
@@ -150,7 +176,7 @@ def SRCS_avg():
 
     for i in range(TEST_ACCURACY):
         g = game.create_random_game(player_file.full_random(True), player_file.full_random(True))
-        for i in range (random.randint(3,20)):
+        for i in range (random.randint(3,MAX_MOVES_FOR_RANDOM)):
 
             move = g._game__get_active_player().get_move(g.current_game_state)
             g.move_stack.append(move)   
@@ -161,4 +187,51 @@ def SRCS_avg():
 
     return sum(vectorized_SRCS(np.array(game_states))) / TEST_ACCURACY
 
-print(SRCS_avg())
+LOW_NOISE = 1
+HIGH_NOISE = 3
+
+
+
+def select_players():
+    blue, red = gui_file.get_players()
+    if blue == "diff1":
+        blue = player_file.computer(True, noise = HIGH_NOISE)
+    elif blue == "diff2":
+        blue = player_file.computer(True, noise = LOW_NOISE)
+    elif blue == "diff3":
+        blue = player_file.computer(True)
+    elif blue == "player":
+        blue = player_file.player(True)
+    if red == "diff1":
+        red = player_file.computer(False, noise = HIGH_NOISE)
+    elif red == "diff2":
+        red = player_file.computer(False, noise = LOW_NOISE)
+    elif red == "diff3": 
+        red = player_file.computer(False)
+    elif red == "player":
+        red = player_file.player(False)
+    
+    return blue, red
+
+def game_file_cycler(blue, red):
+    for name in os.listdir("/home/shepad/projects/onitama/saves"):
+        game = load_game(name, blue, red)
+        if gui_file.is_correct_game_file():
+            gui_file.game_display(game.current_game_state)
+            return game
+    return game_file_cycler(blue, red) # if all files passed on start again
+
+def select_game_file(blue, red) -> game:
+    if gui_file.get_game_file_type():
+        return game.create_random_game(blue, red)
+    return game_file_cycler(blue, red)
+    
+    
+
+
+
+
+def main():
+    blue, red = select_players()
+    game = select_game_file(blue, red)
+    game.play_game()

@@ -58,6 +58,11 @@ undo_button = pygame.draw.rect(window, WHITE, (150,1000,150,50))
 hint_surface = FONT.render("Hint", True, BLACK)
 hint_button = pygame.draw.rect(window, WHITE, (300,1000,150,50))
 
+move_surface = FONT.render("Move", True, BLACK)
+move_button = pygame.draw.rect(window, WHITE, (450,1000,150,50))
+
+review_surface = FONT.render("review", True, BLACK)
+
 computer_surface = FONT.render("computer players: ", True, BLACK)
 computer_blue_marker = pygame.draw.rect(window, WHITE, (150, 150, 150, 50))
 computer_red_marker = pygame.draw.rect(window, WHITE, (150, 700, 150, 50))
@@ -109,7 +114,23 @@ for piece in ["bk", "bp", "wk", "wp"]:
     )
 
 
+def should_review(winner:bool):
+    window.fill(GREY)
+    window.blit(review_surface,(new_game_button.x + 5, new_game_button.y + 5))
+    window.blit(new_game_surface,(load_game_button.x + 5, load_game_button.y + 5))
+    pygame.display.flip()
+    running = True
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
 
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if new_game_button.collidepoint(event.pos):
+                    return True
+                elif load_game_button.collidepoint(event.pos):
+                    return False
 
 def display_card(card_matrix, x , y, position_colour):
     
@@ -142,6 +163,7 @@ def game_display(state:game_state_file.game_state, source = None, target = None,
                 pygame.draw.rect(window, YELLOW_HINT, ((coli*SQUARE_SIZE)+400, (rowi*SQUARE_SIZE)+350, SQUARE_SIZE, SQUARE_SIZE), 4)
             elif (rowi-2,coli-2) == hint_target:
                 pygame.draw.rect(window, GREEN_HINT, ((coli*SQUARE_SIZE)+400, (rowi*SQUARE_SIZE)+350, SQUARE_SIZE, SQUARE_SIZE), 4)
+        
             board = get_board(state)
             piece = board[rowi][coli]
             if piece != "..":
@@ -160,6 +182,7 @@ def game_display(state:game_state_file.game_state, source = None, target = None,
         window.blit(save_surface,(save_button.x + 5, save_button.y + 5))
         window.blit(undo_surface,(undo_button.x + 5, undo_button.y + 5))
         window.blit(hint_surface,(hint_button.x + 5, hint_button.y + 5))
+        window.blit(move_surface,(move_button.x + 5, move_button.y + 5))
 
     window.blit(up_arrow, (5, 700))
     window.blit(up_arrow, (400, 700))
@@ -186,6 +209,8 @@ def gui_select_square():
                     return "undo_command"
                 if hint_button.collidepoint(event.pos):
                     return "hint_command"
+                if move_button.collidepoint(event.pos):
+                    return "move_command"
                 else:
                     pos = pygame.mouse.get_pos()
                     col = ((pos[0]-400) // SQUARE_SIZE) -2
