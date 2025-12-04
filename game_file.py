@@ -12,9 +12,11 @@ import piece_file
 import card_file
 import player_file
 import gui_file
+import review_file
+import matplotlib.pyplot as plt
 
 
-MOVES_TO_UNDO = 2 # can be changed if human vs human
+MOVES_TO_UNDO = 1 
 TIME_FOR_WIN = 1
 
 
@@ -36,15 +38,15 @@ class game:
 
 
 
-    def __get_active_player(self):
+    def __get_active_player(self) -> player_file.player:
         if self.current_game_state.is_b_turn:
             return self.player_b
         else:
             return self.player_r
 
-    def play_game(self): #  test progress game_state
+    def play_game(self): 
         
-        while self.current_game_state.is_game_live:
+        while self.current_game_state.is_game_live: 
             move = self.__get_active_player().get_move(self.current_game_state) # get move
             if type(move) == str:
                 if move == "save_command":
@@ -53,12 +55,11 @@ class game:
                     self.undo()
                 elif move == "hint_command":
                     move = self.hint()
-                    self.move_stack.append(move)   
-                    self.current_game_state.progress_game_state(move)
                 elif move == "move_command":
                     move = self.full_hint()
-                    self.move_stack.append(move)   
-                    self.current_game_state.progress_game_state(move)
+                elif move == "instructions_command":
+                    temp = gui_file.instructions_display()
+                    self.play_game()
             
                 else:
                     raise Exception("unrecognised internal message")
@@ -67,6 +68,23 @@ class game:
                 self.current_game_state.progress_game_state(move) # progress game_state
             gui_file.game_display(self.current_game_state)
         self.game_over()
+        
+    def play_game_SRC(self): #  test progress game_state
+        
+        src = []
+        game_progression = []
+        while self.current_game_state.is_game_live:
+            move = self.__get_active_player().get_move(self.current_game_state)
+            game_progression.append(len(self.move_stack))
+            src.append(SRCS(self.current_game_state))
+            self.move_stack.append(move)
+            self.current_game_state.progress_game_state(move) # progress game_state
+            gui_file.game_display(self.current_game_state)
+        self.show_graph(src, game_progression)
+
+    def show_graph(self, src, game_progression):
+        plt.plot(game_progression, src)
+        plt.savefig("/home/shepad/projects/onitama/src_over_time/test_1.png")
 
     def game_over(self):
         sleep(TIME_FOR_WIN)
@@ -74,11 +92,11 @@ class game:
             self.review()
         else:
             main()
-    
+
     def review(self):
-        pass
-
-
+        review_obj = review_file.review(self.initial_game_state, self.move_stack)
+        review_obj.review()
+        main()
     def save_game(self): # assume files in objecr form
 
         cards = [self.initial_game_state.player_b_cards[0].name,self.initial_game_state.player_b_cards[1].name,self.initial_game_state.player_r_cards[0].name,self.initial_game_state.player_r_cards[1].name,self.initial_game_state.middle_card.name]
@@ -151,9 +169,9 @@ def load_game(name, blue = player_file.player(True), red = player_file.player(Fa
     gui_file.game_display(game.current_game_state, is_file_cycling = True)
     return game
 
-TEST_ACCURACY = 100
+TEST_ACCURACY = 10
 MAX_MOVES_FOR_RANDOM = 15
-STAT_MAX = 147
+STAT_MAX = 300
 
 def SRCS(g1):
     com_b = player_file.computer(True)
@@ -175,7 +193,7 @@ def SRCS_avg():
     game_states = []
 
     for i in range(TEST_ACCURACY):
-        g = game.create_random_game(player_file.full_random(True), player_file.full_random(True))
+        g = game.create_random_game(player_file.full_random(True), player_file.full_random(False))
         for i in range (random.randint(3,MAX_MOVES_FOR_RANDOM)):
 
             move = g._game__get_active_player().get_move(g.current_game_state)
@@ -235,3 +253,9 @@ def main():
     blue, red = select_players()
     game = select_game_file(blue, red)
     game.play_game()
+
+def record_src_over_time():
+    blue, red = player_file.computer(True), player_file.computer(False)
+    gprime = game.create_random_game(blue, red)
+    gprime.play_game_SRC()
+

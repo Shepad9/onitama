@@ -47,6 +47,9 @@ YELLOW_HINT = (230, 217, 129)
 GREEN_HINT = (139, 172, 58)
 
 FONT = pygame.font.SysFont("Comic Sans MS", 30)
+progress_surface = FONT.render("progress", True, BLACK)
+quit_surface = FONT.render("quit", True, BLACK)
+
 save_surface = FONT.render("Save", True, BLACK)
 next_file_surface = FONT.render("Next file", True, BLACK)
 save_button = pygame.draw.rect(window, WHITE, (0,1000,150,50))
@@ -59,9 +62,12 @@ hint_surface = FONT.render("Hint", True, BLACK)
 hint_button = pygame.draw.rect(window, WHITE, (300,1000,150,50))
 
 move_surface = FONT.render("Move", True, BLACK)
-move_button = pygame.draw.rect(window, WHITE, (450,1000,150,50))
+move_button = pygame.draw.rect(window, WHITE, (450,1000,100,50)) # 100 because was clashing with instructions
 
 review_surface = FONT.render("review", True, BLACK)
+
+instructions_surface = FONT.render("instructions", True, BLACK)
+instructions_button = pygame.draw.rect(window, WHITE, (550,1000,150,50))
 
 computer_surface = FONT.render("computer players: ", True, BLACK)
 computer_blue_marker = pygame.draw.rect(window, WHITE, (150, 150, 150, 50))
@@ -92,6 +98,27 @@ new_game_button = pygame.draw.rect(window, WHITE, (300,150,150,50))
 load_game_surface = FONT.render("Load game", True, BLACK)
 load_game_button = pygame.draw.rect(window, WHITE, (300,800,150,50))
 
+instructions_text = """
+When finished reading press the space bar and scroll in either diretion to return to your game.
+buttons at the bottom of the screen are called utility buttons, these are only callable if it the turn of a human player.
+Whose turn it is is indicated by the background colour, being either red, or blue, if the background is white you are in the file selection screen which will be displayed below.
+to initiate a game select the the players for both colours, if selecting a computer player click on the difficuly, when happy with ur choices click confirm.
+Now decide whether you would like a new game or a saved file(some files have been saved for you), if selecting a file you can cycle through all saved files until at the file you wish to load.
+Now that you are playing the game, on each turn you must select; the piece you wish to move, the square you wish to move to and the card you wish to use in that order(select each component by clicking on it).
+the piece about to move is indicated with a yellow highlight, and the square you are about to move to is indicated with a green highlight.
+if you have made a mistake, simply click the piece you wish to move again until it is highlighted in yellow, then continue as normal.
+If playing  computer this may take a couple seconds to move, this is normal.
+After a game, you have the choice to review, this will allow you to click through the game at your own pace at any point you may ask the computer what it would have played.
+the utility buttons are generally intuitive, but know that hint offers you only the piece to move in a different yellow highlight, whilst move tells you where to move the piece aswell in a green highlight.
+Note these highlights are just suggestions and you are at liberty to move as normal.
+you are also able to watch two computer play eachother, the reccomended way of doing this is letting them play and then reviewing the game.
+If unaware as to the rules of Onitama, the game can be won by capturing the opponents master or getting your own master to the opponents temple(where their master starts).
+all pieces move according the cards, the movements available to you will be highlighted in your colour, all cards movements are relative to the black square in the middle.
+after each move the card used is put in the middle and you gain the middle card for your next turn, the cards rotate this is made somewhat clear via the arrows.
+capturing rules are chess like, as in you cannot capture your own pieces and capturing occurs by landing on an opponets piece.
+Note: you may move yourself into check and there is no warning given when you are in check.
+"""
+
 up_arrow = pygame.transform.scale(
     pygame.image.load("assets/up_arrow.svg"), 
     (SQUARE_SIZE, SQUARE_SIZE*5)
@@ -115,7 +142,10 @@ for piece in ["bk", "bp", "wk", "wp"]:
 
 
 def should_review(winner:bool):
-    window.fill(GREY)
+    if not(winner):
+        window.fill(LIGHT_BLUE)
+    else:
+        window.fill(LIGHT_RED)
     window.blit(review_surface,(new_game_button.x + 5, new_game_button.y + 5))
     window.blit(new_game_surface,(load_game_button.x + 5, load_game_button.y + 5))
     pygame.display.flip()
@@ -141,7 +171,7 @@ def display_card(card_matrix, x , y, position_colour):
                 colour = BLACK
             pygame.draw.rect(window, colour, ((coli*SQUARE_SIZE)+x, (rowi*SQUARE_SIZE)+y, SQUARE_SIZE, SQUARE_SIZE))
 
-def game_display(state:game_state_file.game_state, source = None, target = None, hint_source = None, hint_target = None, is_file_cycling = False):
+def game_display(state:game_state_file.game_state, source = None, target = None, hint_source = None, hint_target = None, is_file_cycling = False, is_review = False):
     if is_file_cycling:
         window.fill(WHITE)
     else:
@@ -178,11 +208,17 @@ def game_display(state:game_state_file.game_state, source = None, target = None,
     if is_file_cycling:
         window.blit(next_file_surface,(save_button.x + 5, save_button.y + 5))
         window.blit(correct_file_surface,(undo_button.x + 5, undo_button.y + 5))
+    elif is_review:
+        window.blit(progress_surface,(save_button.x + 5, save_button.y + 5))
+        window.blit(undo_surface,(undo_button.x + 5, undo_button.y + 5))
+        window.blit(quit_surface,(hint_button.x + 5, hint_button.y + 5))
+        window.blit(move_surface,(move_button.x + 5, move_button.y + 5))
     else:
         window.blit(save_surface,(save_button.x + 5, save_button.y + 5))
         window.blit(undo_surface,(undo_button.x + 5, undo_button.y + 5))
         window.blit(hint_surface,(hint_button.x + 5, hint_button.y + 5))
         window.blit(move_surface,(move_button.x + 5, move_button.y + 5))
+        window.blit(instructions_surface,(instructions_button.x + 5, instructions_button.y + 5))
 
     window.blit(up_arrow, (5, 700))
     window.blit(up_arrow, (400, 700))
@@ -192,6 +228,77 @@ def game_display(state:game_state_file.game_state, source = None, target = None,
 
     
     pygame.display.flip()
+
+def text_wrapper(text, width_max, font): #written like a greedy algorithm (rare serious code for this file) for instructions thing
+    words = text.split(" ")
+
+    lines = []
+    current_line = ""
+    for word in words:
+        potential_line = current_line + word + " "
+        if font.size(potential_line)[0] <= width_max:
+            current_line = potential_line
+        else:
+            lines.append(current_line)
+            current_line = word + " "
+    lines.append(current_line) # bc last line needs to be included
+    return lines
+def clamp_scroll(scroll, height): # ensures dont scroll of page 30 is the vertical padding
+    content_total = height + 30 * 2
+    max_scroll = 30  # fully scrolled to top
+    min_scroll = min(30, HEIGHT - content_total + 30)
+
+        # If text fits, lock in place
+    if content_total <= HEIGHT:
+        return 30 # if dont need to scroll lock in position
+
+    return  max(min_scroll, min(max_scroll, scroll)) # return the same unless outside valid range
+
+    
+
+def instructions_display():
+    lines = text_wrapper(instructions_text, WIDTH-30, FONT)
+    scroll_ofset = 0
+    scroll_ofset = clamp_scroll(HEIGHT, scroll_ofset) # line makes scroll_ofset valid repaeated below
+    clock = pygame.time.Clock()
+
+    line_height = FONT.get_height() + 3 #dont combine lines we need line height to print lines at bottom
+    text_height = len(lines) * line_height
+
+    running = True
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+                
+        
+            if event.type == pygame.MOUSEWHEEL: # wheel scroll
+                scroll_ofset += event.y * 30
+                scroll_ofset = clamp_scroll(HEIGHT, scroll_ofset)
+
+
+        
+            if event.type == pygame.KEYDOWN: # button scroll
+                if event.key == pygame.K_DOWN:
+                    scroll_ofset -= 20
+                    scroll_ofset = clamp_scroll(HEIGHT, scroll_ofset)
+                if event.key == pygame.K_UP:
+                    scroll_ofset += 20
+                    scroll_ofset = clamp_scroll(HEIGHT, scroll_ofset)
+                if event.key == pygame.K_SPACE:
+                    return None # leave the intructions page
+         
+        window.fill(GREY)
+
+        y = 30 + scroll_ofset # 30 is space at the top of the screen
+        for line in lines:
+            text_surface = FONT.render(line, True, BLACK)
+            window.blit(text_surface, (15, y)) #15 is space to left, probably should be a global 
+            y += line_height
+
+        pygame.display.flip()
+        clock.tick(30)
+
 
 
 def gui_select_square():
@@ -211,6 +318,8 @@ def gui_select_square():
                     return "hint_command"
                 if move_button.collidepoint(event.pos):
                     return "move_command"
+                if instructions_button.collidepoint(event.pos):
+                    return "instructions_command"
                 else:
                     pos = pygame.mouse.get_pos()
                     col = ((pos[0]-400) // SQUARE_SIZE) -2
@@ -242,7 +351,11 @@ def get_card(): # returns tuple (-1,-1) didnt click on a card else first number 
                     return (1,1)
                 else:
                     return (-1,-1)
-                
+
+
+def show_instructions():
+    pass
+
 def get_players(blue = "player", red = "player"):
     window.fill(LIGHT_BLUE)
     pygame.draw.rect(window, LIGHT_RED, (0,550, 700, 550))
@@ -332,3 +445,24 @@ def is_correct_game_file():
                     return False
                 elif undo_button.collidepoint(event.pos):
                     return True
+                
+def review_command():
+    running = True
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if save_button.collidepoint(event.pos):
+                    return "progress"
+                elif undo_button.collidepoint(event.pos):
+                    return "undo"
+                elif hint_button.collidepoint(event.pos):
+                    return "quit"
+                elif move_button.collidepoint(event.pos):
+                    return "move"
+                
+            
+                
