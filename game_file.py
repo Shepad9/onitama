@@ -1,3 +1,5 @@
+#--------game_file.py---------
+
 import json
 import numpy as np
 import os
@@ -169,7 +171,7 @@ def load_game(name, blue = player_file.player(True), red = player_file.player(Fa
     gui_file.game_display(game.current_game_state, is_file_cycling = True)
     return game
 
-TEST_ACCURACY = 10
+TEST_ACCURACY = 100
 MAX_MOVES_FOR_RANDOM = 15
 STAT_MAX = 300
 

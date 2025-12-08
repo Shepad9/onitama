@@ -1,3 +1,5 @@
+#---------player_file.py----------
+
 import numpy as np
 import game_state_file
 import move_file
@@ -66,7 +68,7 @@ class computer(player):
     
     
 
-    def __init__(self, is_blue, weights = {"total pieces": (10, 15), "piece progression": (1, 0), "master to temple": (2, 3), "defended pieces" : (3, 1), "attacked squares" : (2,3)}, noise = 0):
+    def __init__(self, is_blue, weights = {"total pieces": (10, 15), "piece progression": (1, 0), "master to temple": (0, 5), "defended pieces": (3, 1), "attacked squares": (2,3)}, noise = 0):
         super().__init__(is_blue)
         self.weights = weights
         self.noise = noise
@@ -231,7 +233,9 @@ class computer(player):
             return {"score":self.quiescence_min(state), "asc_line":[],"best_line": best_line} # return dict
         if state.is_win():
             return {"score":self.static_evaluation(state), "asc_line":[],"best_line": best_line}
+        
         all_moves = self.heuristic_move_sorter(state.generate_possible_moves(), state.is_b_turn)
+
         if len(all_moves) == 0:
             return {"score":self.static_evaluation(state), "asc_line":[],"best_line": best_line}
         for potential_move in all_moves:
