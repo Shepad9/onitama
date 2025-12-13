@@ -83,6 +83,16 @@ class game:
             self.current_game_state.progress_game_state(move) # progress game_state
             gui_file.game_display(self.current_game_state)
         self.show_graph(src, game_progression)
+    
+    def record_game(self):
+
+        while self.current_game_state.is_game_live:
+            move = self.__get_active_player().get_move(self.current_game_state)
+            self.move_stack.append(move)
+            self.current_game_state.progress_game_state(move) # progress game_state
+            gui_file.game_display(self.current_game_state)
+        self.save_game("recordings")
+
 
     def show_graph(self, src, game_progression):
         plt.plot(game_progression, src)
@@ -99,12 +109,12 @@ class game:
         review_obj = review_file.review(self.initial_game_state, self.move_stack)
         review_obj.review()
         main()
-    def save_game(self): # assume files in objecr form
+    def save_game(self, which_folder = "saves"): # assume files in objecr form
 
         cards = [self.initial_game_state.player_b_cards[0].name,self.initial_game_state.player_b_cards[1].name,self.initial_game_state.player_r_cards[0].name,self.initial_game_state.player_r_cards[1].name,self.initial_game_state.middle_card.name]
         moves = list([move_to_dict(move) for move in self.move_stack])
         thing_to_save = {"cards": cards, "moves": moves}
-        with open (f"saves/{str(time())}.txt","x") as outfile:
+        with open (f"{which_folder}/{str(time())}.txt","x") as outfile:
             json.dump(thing_to_save,outfile)
             outfile.close()
         main()
@@ -255,6 +265,11 @@ def main():
     blue, red = select_players()
     game = select_game_file(blue, red)
     game.play_game()
+
+def record():
+    blue, red = player_file.computer(True), player_file.computer(False)
+    gprime = game.create_random_game(blue, red)
+    gprime.record_game()
 
 def record_src_over_time():
     blue, red = player_file.computer(True), player_file.computer(False)

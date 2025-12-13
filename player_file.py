@@ -8,10 +8,14 @@ import random
 from time import sleep
 from copy import deepcopy
 from copy import copy
+import sys
  
 GAME_WIN_SCORE = 1023
 TIME_TO_MOVE = 2 #seconds
 SEARCH_DEPTH = 3
+if len(sys.argv) > 1:
+    SEARCH_DEPTH = int(sys.argv[1])
+
 
 
 class player:
@@ -108,7 +112,7 @@ class computer(player):
             return 0
         return 1
 
-    def quiescence_max(self, state:game_state_file.game_state, best_score = -GAME_WIN_SCORE):
+    def quiescence_max(self, state:game_state_file.game_state, best_score = -GAME_WIN_SCORE-1):
         if self.is_quiet(state):
             return self.static_evaluation(state)
         moves = state.generate_possible_moves()
@@ -122,7 +126,7 @@ class computer(player):
                 best_score = score
             return best_score
 
-    def quiescence_min(self, state:game_state_file.game_state, best_score = GAME_WIN_SCORE):
+    def quiescence_min(self, state:game_state_file.game_state, best_score = GAME_WIN_SCORE+1):
         if self.is_quiet(state):
             return self.static_evaluation(state)
         moves = state.generate_possible_moves()
