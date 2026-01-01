@@ -13,8 +13,8 @@ import sys
 GAME_WIN_SCORE = 1023
 TIME_TO_MOVE = 2 #seconds
 SEARCH_DEPTH = 3
-if len(sys.argv) > 1:
-    SEARCH_DEPTH = int(sys.argv[1])
+if len(sys.argv) > 2:
+    SEARCH_DEPTH = int(sys.argv[2])
 
 
 
@@ -116,6 +116,8 @@ class computer(player):
         if self.is_quiet(state):
             return self.static_evaluation(state)
         moves = state.generate_possible_moves()
+        if len(moves) == 0:
+            return self.static_evaluation(state)
         for potential_move in moves:
             working_state = deepcopy(state) # prevents errors caused by python passing references rather than values
             working_state.progress_game_state(potential_move)
@@ -130,6 +132,8 @@ class computer(player):
         if self.is_quiet(state):
             return self.static_evaluation(state)
         moves = state.generate_possible_moves()
+        if len(moves) == 0:
+            return self.static_evaluation(state)
         for potential_move in moves:
             working_state = deepcopy(state) # prevents errors caused by python passing references rather than values
             working_state.progress_game_state(potential_move)

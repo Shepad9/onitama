@@ -84,14 +84,17 @@ class game:
             gui_file.game_display(self.current_game_state)
         self.show_graph(src, game_progression)
     
-    def record_game(self):
+    def record_game(self,should_save = True, give_num_moves = False):
 
         while self.current_game_state.is_game_live:
             move = self.__get_active_player().get_move(self.current_game_state)
             self.move_stack.append(move)
             self.current_game_state.progress_game_state(move) # progress game_state
             gui_file.game_display(self.current_game_state)
-        self.save_game("recordings")
+        if should_save:
+            self.save_game("recordings", stop = True)
+        if give_num_moves:
+            return len(self.move_stack)
 
 
     def show_graph(self, src, game_progression):
@@ -105,11 +108,12 @@ class game:
         else:
             main()
 
-    def review(self):
+    def review(self, can_stop = False):
         review_obj = review_file.review(self.initial_game_state, self.move_stack)
         review_obj.review()
-        main()
-    def save_game(self, which_folder = "saves"): # assume files in objecr form
+        if can_stop == False:
+            main()
+    def save_game(self, which_folder = "saves", stop = False): # assume files in objecr form
 
         cards = [self.initial_game_state.player_b_cards[0].name,self.initial_game_state.player_b_cards[1].name,self.initial_game_state.player_r_cards[0].name,self.initial_game_state.player_r_cards[1].name,self.initial_game_state.middle_card.name]
         moves = list([move_to_dict(move) for move in self.move_stack])
@@ -117,7 +121,8 @@ class game:
         with open (f"{which_folder}/{str(time())}.txt","x") as outfile:
             json.dump(thing_to_save,outfile)
             outfile.close()
-        main()
+        if stop == False:
+            main()
     
 
     def undo(self):
@@ -243,13 +248,13 @@ def select_players():
     
     return blue, red
 
-def game_file_cycler(blue, red):
-    for name in os.listdir("/home/shepad/projects/onitama/saves"):
-        game = load_game(name, blue, red)
+def game_file_cycler(blue, red, folder = "saves"):
+    for name in os.listdir(f"/home/shepad/projects/onitama/{folder}"):
+        game = load_game(name, blue, red, folder = folder)
         if gui_file.is_correct_game_file():
             gui_file.game_display(game.current_game_state)
             return game
-    return game_file_cycler(blue, red) # if all files passed on start again
+    return game_file_cycler(blue, red, folder = folder) # if all files passed on start again
 
 def select_game_file(blue, red) -> game:
     if gui_file.get_game_file_type():
@@ -259,7 +264,9 @@ def select_game_file(blue, red) -> game:
     
 
 
-
+def watch():
+    game = game_file_cycler(player_file.computer(True), player_file.computer(False), folder = "recordings")
+    game.review()
 
 def main():
     blue, red = select_players()
@@ -276,3 +283,18 @@ def record_src_over_time():
     gprime = game.create_random_game(blue, red)
     gprime.play_game_SRC()
 
+def hundred_games():
+    blue, red = player_file.computer(True), player_file.computer(False)
+    total_moves = 0
+    # record time or smth
+    start = time()
+
+    for _ in range(20):
+        gprime = game.create_random_game(blue, red)
+        total_moves += deepcopy(gprime).record_game(should_save=False, give_num_moves = True)
+        print(total_moves)
+    end = time()
+    print("time per move")
+    print(((end - start)/total_moves))
+    print("total moves")
+    print(total_moves)
