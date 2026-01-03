@@ -10,7 +10,7 @@ from copy import deepcopy
 from copy import copy
 import sys
  
-GAME_WIN_SCORE = 1023
+GAME_WIN_SCORE = 700
 TIME_TO_MOVE = 2 #seconds
 SEARCH_DEPTH = 3
 if len(sys.argv) > 2:
@@ -70,10 +70,10 @@ class full_random(player):
 
 class computer(player):
     
-    
 
-    def __init__(self, is_blue, weights = {"total pieces": (10, 15), "piece progression": (1, 0), "master to temple": (0, 5), "defended pieces": (3, 1), "attacked squares": (2,3)}, noise = 0):
+    def __init__(self, is_blue, depth = SEARCH_DEPTH, weights = {"total pieces": (3.303, 3.694), "piece progression": (0.728, 0.396), "master to temple": (0.3765, 1.5615), "defended pieces": (3.5405, 2.919), "attacked squares": (-0.9385, -0.4885)}, noise = 0):
         super().__init__(is_blue)
+        self.master_depth = depth
         self.weights = weights
         self.noise = noise
 
@@ -108,7 +108,7 @@ class computer(player):
         return True
     
     def which_weighting(self, state:game_state_file.game_state): 
-        if len(state.player_b_pieces) + len(state.player_r_pieces) > 6:
+        if len(state.player_b_pieces) + len(state.player_r_pieces) > 7:
             return 0
         return 1
 
@@ -272,9 +272,9 @@ class computer(player):
         
         #sleep(TIME_TO_MOVE)
         if state.is_b_turn:
-            ret = self.maximiser(state)
+            ret = self.maximiser(state, depth = self.master_depth)
         else:
-            ret = self.minimiser(state)
+            ret = self.minimiser(state, depth = self.master_depth)
         
         move = ret["best_line"][-1]
         return move_file.move(move.card ,tuple([int(x) for x in move.target]), move.source)

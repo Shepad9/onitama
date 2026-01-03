@@ -16,6 +16,7 @@ import player_file
 import gui_file
 import review_file
 import matplotlib.pyplot as plt
+import math
 
 
 MOVES_TO_UNDO = 1 
@@ -30,10 +31,11 @@ class game:
         self.player_r = player_r
         self.move_stack = move_stack
 
-    def create_random_game(blue, red):
+    def create_random_game(blue, red, should_display = True):
         g = game_state_file.create_random_game_state()
         g1 = deepcopy(g)
-        gui_file.game_display(g)
+        if should_display:
+            gui_file.game_display(g)
         if type(blue) != player_file.computer and type(blue) != player_file.computer:
             MOVES_TO_UNDO = 1
         return game(g, g1, blue, red)
@@ -186,7 +188,7 @@ def load_game(name, blue = player_file.player(True), red = player_file.player(Fa
     gui_file.game_display(game.current_game_state, is_file_cycling = True)
     return game
 
-TEST_ACCURACY = 100
+TEST_ACCURACY = 30
 MAX_MOVES_FOR_RANDOM = 15
 STAT_MAX = 300
 
@@ -200,12 +202,13 @@ def SRCS(g1):
         dyna = com_b.maximiser(g1)["score"]
     else:
         stat = com_r.quiescence_min(g1)
-        dyna = com_r.minimiser(g1)["score"] 
+        dyna = com_r.minimiser(g1)["score"]
+    
     return  abs((stat - dyna) / STAT_MAX)
 
 
 
-def SRCS_avg():
+def SRCS_avg(): # currently set up for optimisation this is a new benchmark
     
     game_states = []
 
@@ -221,6 +224,7 @@ def SRCS_avg():
     vectorized_SRCS = np.vectorize(SRCS)
 
     return sum(vectorized_SRCS(np.array(game_states))) / TEST_ACCURACY
+           
 
 LOW_NOISE = 1
 HIGH_NOISE = 3

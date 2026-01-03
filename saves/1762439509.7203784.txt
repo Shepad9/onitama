@@ -1,1 +1,0 @@
-{"cards": ["Rabbit", "Ox", "Elephant", "Eel", "Goose"], "moves": []}

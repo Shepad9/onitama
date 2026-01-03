@@ -123,13 +123,13 @@ def test_static_eval_2():
     g1.update_is_game_live()
     p1 = player_file.computer(True)
 
-    assert p1.static_evaluation(g1) == 1023
+    assert p1.static_evaluation(g1) == 700
 def test_static_eval_3():
     g1 = create_g4()
     g1.update_is_game_live()
     p1 = player_file.computer(True)
 
-    assert p1.static_evaluation(g1) == -1023
+    assert p1.static_evaluation(g1) == -700
 
 def test_is_quiet_1():
     g1 = game_file.load_game("noisy_pos.txt", folder = "test_games").current_game_state
