@@ -316,7 +316,7 @@ def hundred_games():
     print("total moves")
     print(total_moves)
 
-
+main()
 
 
     

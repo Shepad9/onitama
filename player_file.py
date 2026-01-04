@@ -293,7 +293,7 @@ class computer(player):
     def get_move(self, state:game_state_file.game_state):
         
         #sleep(TIME_TO_MOVE)
-        if state.is_b_turn:
+        if self.is_blue:
             ret = self.maximiser(state, depth = self.master_depth)
         else:
             ret = self.minimiser(state, depth = self.master_depth)
