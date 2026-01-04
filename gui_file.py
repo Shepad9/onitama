@@ -3,10 +3,11 @@
 import pygame
 import sys
 import numpy as np
-import game_state_file
-import piece_file
-import card_file
+from pathlib import Path
 
+import game_state_file
+
+BASE_PATH = Path(__file__).resolve().parent
 
 
 def get_board(state:game_state_file.game_state):
@@ -122,15 +123,15 @@ Note: you may move yourself into check and there is no warning given when you ar
 """
 
 up_arrow = pygame.transform.scale(
-    pygame.image.load("assets/up_arrow.svg"), 
+    pygame.image.load(f"{BASE_PATH}/assets/up_arrow.svg"), 
     (SQUARE_SIZE, SQUARE_SIZE*5)
     )
 down_arrow = pygame.transform.scale(
-    pygame.image.load("assets/down_arrow.svg"), 
+    pygame.image.load(f"{BASE_PATH}/assets/down_arrow.svg"), 
     (SQUARE_SIZE, SQUARE_SIZE*5)
     )
 right_arrow = pygame.transform.scale(
-    pygame.image.load("assets/right_arrow.svg"), 
+    pygame.image.load(f"{BASE_PATH}/assets/right_arrow.svg"), 
     (SQUARE_SIZE*5, SQUARE_SIZE)
     )
 
@@ -138,7 +139,7 @@ PIECES_TO_PICTURES = {}
 
 for piece in ["bk", "bp", "wk", "wp"]:
     PIECES_TO_PICTURES[piece] = pygame.transform.scale(
-    pygame.image.load(f"assets/{piece}.svg"), 
+    pygame.image.load(f"{BASE_PATH}/assets/{piece}.svg"), 
     (SQUARE_SIZE, SQUARE_SIZE)
     )
 
@@ -163,6 +164,7 @@ def should_review(winner:bool):
                     return True
                 elif load_game_button.collidepoint(event.pos):
                     return False
+                
 
 def display_card(card_matrix, x , y, position_colour):
     
@@ -173,7 +175,16 @@ def display_card(card_matrix, x , y, position_colour):
                 colour = BLACK
             pygame.draw.rect(window, colour, ((coli*SQUARE_SIZE)+x, (rowi*SQUARE_SIZE)+y, SQUARE_SIZE, SQUARE_SIZE))
 
-def game_display(state:game_state_file.game_state, source = None, target = None, hint_source = None, hint_target = None, is_file_cycling = False, is_review = False):
+
+def game_display(
+        state:game_state_file.game_state,
+        source = None,
+        target = None,
+        hint_source = None,
+        hint_target = None,
+        is_file_cycling = False,
+        is_review = False
+    ):
     if is_file_cycling:
         window.fill(WHITE)
     else:
@@ -201,7 +212,6 @@ def game_display(state:game_state_file.game_state, source = None, target = None,
             if piece != "..":
                 window.blit(PIECES_TO_PICTURES[piece], ((coli*SQUARE_SIZE)+400, (rowi*SQUARE_SIZE)+350))
 
-
     display_card(state.player_b_cards[0].get_flattened_matrix(), 0, 0, BLUE) 
     display_card(state.player_b_cards[1].get_flattened_matrix(), 400, 0, BLUE)
     display_card(np.rot90(state.player_r_cards[0].get_flattened_matrix(), 2), 0, 700, RED)
@@ -228,8 +238,8 @@ def game_display(state:game_state_file.game_state, source = None, target = None,
     window.blit(down_arrow, (640, 0))
     window.blit(right_arrow, (0,350))
 
-    
     pygame.display.flip()
+
 
 def text_wrapper(text, width_max, font): #written like a greedy algorithm (rare serious code for this file) for instructions thing
     words = text.split(" ")
@@ -245,6 +255,8 @@ def text_wrapper(text, width_max, font): #written like a greedy algorithm (rare 
             current_line = word + " "
     lines.append(current_line) # bc last line needs to be included
     return lines
+
+
 def clamp_scroll(scroll, height): # ensures dont scroll of page 30 is the vertical padding
     content_total = height + 30 * 2
     max_scroll = 30  # fully scrolled to top
@@ -257,7 +269,6 @@ def clamp_scroll(scroll, height): # ensures dont scroll of page 30 is the vertic
     return  max(min_scroll, min(max_scroll, scroll)) # return the same unless outside valid range
 
     
-
 def instructions_display():
     lines = text_wrapper(instructions_text, WIDTH-30, FONT)
     scroll_ofset = 0
@@ -272,14 +283,11 @@ def instructions_display():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
-                
-        
+                       
             if event.type == pygame.MOUSEWHEEL: # wheel scroll
                 scroll_ofset += event.y * 30
                 scroll_ofset = clamp_scroll(HEIGHT, scroll_ofset)
-
-
-        
+     
             if event.type == pygame.KEYDOWN: # button scroll
                 if event.key == pygame.K_DOWN:
                     scroll_ofset -= 20
@@ -300,7 +308,6 @@ def instructions_display():
 
         pygame.display.flip()
         clock.tick(30)
-
 
 
 def gui_select_square():
@@ -327,11 +334,7 @@ def gui_select_square():
                     col = ((pos[0]-400) // SQUARE_SIZE) -2
                     row = ((pos[1]-350) // SQUARE_SIZE) -2
                     return (row, col)
-            
-
-
-
-
+        
  
 def get_card(): # returns tuple (-1,-1) didnt click on a card else first number is is_b second number index of card
     running = True
@@ -357,6 +360,7 @@ def get_card(): # returns tuple (-1,-1) didnt click on a card else first number 
 
 def show_instructions():
     pass
+
 
 def get_players(blue = "player", red = "player"):
     window.fill(LIGHT_BLUE)
@@ -415,6 +419,7 @@ def get_players(blue = "player", red = "player"):
                     return get_players(blue, "player")
                 elif confirm_button.collidepoint(event.pos):
                     return (blue, red)
+                
     
 def get_game_file_type(): # returns is new game
     window.fill(GREY)
@@ -433,6 +438,7 @@ def get_game_file_type(): # returns is new game
                     return True
                 elif load_game_button.collidepoint(event.pos):
                     return False
+                
             
 def is_correct_game_file():
     running = True
@@ -447,6 +453,7 @@ def is_correct_game_file():
                     return False
                 elif undo_button.collidepoint(event.pos):
                     return True
+                
                 
 def review_command():
     running = True
@@ -467,4 +474,5 @@ def review_command():
                     return "move"
                 
             
-                
+    
+               

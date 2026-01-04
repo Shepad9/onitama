@@ -1,6 +1,8 @@
+#---------particle_swarm.py--------
+
 import numpy as np
 import math
-import random
+
 import game_file
 import player_file
 import gui_file
@@ -165,4 +167,7 @@ print("Best solution found:")
 print(global_best_position)
 print("Best score:", global_best_score)
 show_diversity(positions)
+
+
+
 

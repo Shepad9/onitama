@@ -1,14 +1,15 @@
 #---------player_file.py----------
+
 from itertools import combinations
 import numpy as np
-import game_state_file
-import move_file
-import gui_file
 import random
 from time import sleep
 from copy import deepcopy
-from copy import copy
 import sys
+
+import game_state_file
+import move_file
+import gui_file
  
 GAME_WIN_SCORE = 700
 TIME_TO_MOVE = 2 #seconds
@@ -17,25 +18,17 @@ if len(sys.argv) > 2:
     SEARCH_DEPTH = int(sys.argv[2])
 
 
-
 class player:
     def __init__(self,is_blue): 
         self.is_blue = is_blue
     def get_move(self,state:game_state_file.game_state): 
         
-
         source = gui_file.gui_select_square()
         if type(source) == str:
             return source
             
-
-        gui_file.game_display(state, source)
-
-        
-            
+        gui_file.game_display(state, source)            
         target = gui_file.gui_select_square()
-
-       
 
         gui_file.game_display(state, source, target)
         card_finder = gui_file.get_card()
@@ -71,8 +64,16 @@ class full_random(player):
 class computer(player):
     
 
-    def __init__(self, is_blue, depth = SEARCH_DEPTH, weights = {"total pieces": (2.23728095, 3.47390970), "piece progression": (0.20059365, 1.15610860), "master to temple": (1.29001930, 1.24444460), "defended pieces": (4.27002475, 3.00273980), "piece spread": (-0.23890405, -1.01502485)}
-, noise = 0):
+    def __init__(
+            self,
+            is_blue,
+            depth = SEARCH_DEPTH,
+            weights =  {"total pieces": (2.23728095, 3.47390970),
+                        "piece progression": (0.20059365, 1.15610860),
+                        "master to temple": (1.29001930, 1.24444460),
+                        "defended pieces": (4.27002475, 3.00273980),
+                        "piece spread": (-0.23890405, -1.01502485)},
+            noise = 0):
         super().__init__(is_blue)
         self.master_depth = depth
         self.weights = weights
@@ -97,6 +98,7 @@ class computer(player):
     
     def __get_b_piece_coords(self,state:game_state_file.game_state):
         return [piece.coordinates for piece in state.player_b_pieces]
+    
     
     def __get_r_piece_coords(self,state:game_state_file.game_state):
         return [piece.coordinates for piece in state.player_r_pieces]
@@ -153,6 +155,7 @@ class computer(player):
         if is_b:
             return move.source[0] - move.target[0] 
         return move.target[0] - move.source[0]
+    
 
     def heuristic_move_sorter(self, moves:np.array, is_b):
         heuristic_move_mask = np.argsort(np.array([self.move_ordering_heuristic(move, is_b) for move in moves]))
@@ -244,13 +247,9 @@ class computer(player):
             if current_score > alpha: # found a new best move
                 alpha = current_score
                 best_line = asc_current_line
+                               
+        return {"score":alpha, "asc_line":asc_current_line,"best_line": best_line}
                 
-                
-        return {"score":alpha, "asc_line":asc_current_line,"best_line": 
-                best_line}
-                
-        
-
     
     def minimiser(
             self, 

@@ -8,6 +8,9 @@ import pandas as pd
 from copy import deepcopy
 from sys import exit
 from time import time, sleep
+import matplotlib.pyplot as plt
+from pathlib import Path
+
 import move_file
 import game_state_file
 import piece_file
@@ -15,12 +18,11 @@ import card_file
 import player_file
 import gui_file
 import review_file
-import matplotlib.pyplot as plt
-import math
 
 
 MOVES_TO_UNDO = 1 
 TIME_FOR_WIN = 1
+BASE_PATH = Path(__file__).resolve().parent
 
 
 class game:
@@ -30,6 +32,7 @@ class game:
         self.player_b = player_b
         self.player_r = player_r
         self.move_stack = move_stack
+
 
     def create_random_game(blue, red, should_display = True):
         g = game_state_file.create_random_game_state()
@@ -41,12 +44,12 @@ class game:
         return game(g, g1, blue, red)
 
 
-
     def __get_active_player(self) -> player_file.player:
         if self.current_game_state.is_b_turn:
             return self.player_b
         else:
             return self.player_r
+        
 
     def play_game(self): 
         
@@ -72,6 +75,7 @@ class game:
                 self.current_game_state.progress_game_state(move) # progress game_state
             gui_file.game_display(self.current_game_state)
         self.game_over()
+
         
     def play_game_SRC(self): #  test progress game_state
         
@@ -85,6 +89,7 @@ class game:
             self.current_game_state.progress_game_state(move) # progress game_state
             gui_file.game_display(self.current_game_state)
         self.show_graph(src, game_progression)
+
     
     def record_game(self,should_save = True, give_num_moves = False):
 
@@ -101,7 +106,8 @@ class game:
 
     def show_graph(self, src, game_progression):
         plt.plot(game_progression, src)
-        plt.savefig("/home/shepad/projects/onitama/src_over_time/test_1.png")
+        plt.savefig(f"{BASE_PATH}/src_over_time/test_1.png")
+
 
     def game_over(self):
         sleep(TIME_FOR_WIN)
@@ -110,11 +116,14 @@ class game:
         else:
             main()
 
+
     def review(self, can_stop = False):
         review_obj = review_file.review(self.initial_game_state, self.move_stack)
         review_obj.review()
         if can_stop == False:
             main()
+
+
     def save_game(self, which_folder = "saves", stop = False): # assume files in objecr form
 
         cards = [self.initial_game_state.player_b_cards[0].name,self.initial_game_state.player_b_cards[1].name,self.initial_game_state.player_r_cards[0].name,self.initial_game_state.player_r_cards[1].name,self.initial_game_state.middle_card.name]
@@ -134,20 +143,19 @@ class game:
         for move in self.move_stack:
             self.current_game_state.progress_game_state(move) # remove  from move stack chamge current game state
 
+
     def hint(self) -> move_file.move:
         com = player_file.computer(self.current_game_state.is_b_turn)
         hint_move = com.get_move(self.current_game_state)
         gui_file.game_display(self.current_game_state, hint_source=hint_move.source)
         self.play_game()
 
+
     def full_hint(self) -> move_file.move:
         com = player_file.computer(self.current_game_state.is_b_turn)
         hint_move = com.get_move(self.current_game_state)
         gui_file.game_display(self.current_game_state, hint_source=hint_move.source, hint_target= hint_move.target)
         self.play_game()
-
-
-
 
 
 def reconstruct_ini_state(cards):
@@ -163,6 +171,8 @@ def reconstruct_ini_state(cards):
 
 def move_to_dict(move):
     return {"card":move.card.name, "target":move.target, "source":move.source}#we only take the coords of piece
+
+
 def dict_to_move(dict):
     card = card_file.card.create_card(dict["card"])
     target = tuple(dict["target"])
@@ -174,8 +184,9 @@ def create_game(g, blue, red) -> game:
     g1 = deepcopy(g)
     return game(g, g1, blue, red)
 
+
 def load_game(name, blue = player_file.player(True), red = player_file.player(False), folder = "saves") -> game:
-    with open(f"/home/shepad/projects/onitama/{folder}/{name}") as infile:
+    with open(f"{BASE_PATH}/{folder}/{name}") as infile:
         game_string = json.load(infile)
         cards, dict_moves = game_string["cards"], game_string["moves"]
         infile.close()
@@ -188,14 +199,14 @@ def load_game(name, blue = player_file.player(True), red = player_file.player(Fa
     gui_file.game_display(game.current_game_state, is_file_cycling = True)
     return game
 
+
 TEST_ACCURACY = 30
 MAX_MOVES_FOR_RANDOM = 15
 STAT_MAX = 300
 
 def SRCS(g1):
     com_b = player_file.computer(True)
-    com_r = player_file.computer(False)
-    
+    com_r = player_file.computer(False)   
     
     if g1.is_b_turn:
         stat = com_b.quiescence_max(g1)
@@ -207,9 +218,7 @@ def SRCS(g1):
     return  abs((stat - dyna) / STAT_MAX)
 
 
-
 def SRCS_avg(): # currently set up for optimisation this is a new benchmark
-    
     game_states = []
 
     for i in range(TEST_ACCURACY):
@@ -228,7 +237,6 @@ def SRCS_avg(): # currently set up for optimisation this is a new benchmark
 
 LOW_NOISE = 1
 HIGH_NOISE = 3
-
 
 
 def select_players():
@@ -252,46 +260,51 @@ def select_players():
     
     return blue, red
 
+
 def game_file_cycler(blue, red, folder = "saves"):
-    for name in os.listdir(f"/home/shepad/projects/onitama/{folder}"):
+    for name in os.listdir(f"{BASE_PATH}/{folder}"):
         game = load_game(name, blue, red, folder = folder)
         if gui_file.is_correct_game_file():
             gui_file.game_display(game.current_game_state)
             return game
     return game_file_cycler(blue, red, folder = folder) # if all files passed on start again
 
+
 def select_game_file(blue, red) -> game:
     if gui_file.get_game_file_type():
         return game.create_random_game(blue, red)
     return game_file_cycler(blue, red)
     
-    
-
 
 def watch():
     game = game_file_cycler(player_file.computer(True), player_file.computer(False), folder = "recordings")
     game.review()
+
 
 def main():
     blue, red = select_players()
     game = select_game_file(blue, red)
     game.play_game()
 
+
 def record():
     blue, red = player_file.computer(True), player_file.computer(False)
     gprime = game.create_random_game(blue, red)
     gprime.record_game()
+
 
 def record_src_over_time():
     blue, red = player_file.computer(True), player_file.computer(False)
     gprime = game.create_random_game(blue, red)
     gprime.play_game_SRC()
 
+
 def hundred_games():
     blue, red = player_file.computer(True), player_file.computer(False)
     total_moves = 0
     # record time or smth
     start = time()
+
 
     for _ in range(20):
         gprime = game.create_random_game(blue, red)
@@ -302,3 +315,8 @@ def hundred_games():
     print(((end - start)/total_moves))
     print("total moves")
     print(total_moves)
+
+
+
+
+    

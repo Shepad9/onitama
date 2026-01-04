@@ -1,10 +1,10 @@
 #--------game_state_file.py--------
 
 import numpy as np
+
 import card_file
 import move_file
 import piece_file
-
 
 
 class game_state:
@@ -23,6 +23,7 @@ class game_state:
             return [piece.coordinates for piece in self.player_b_pieces]
         else:
              return [piece.coordinates for piece in self.player_r_pieces]
+        
     def get_master_coordinates(self,is_b=None):# returns None if master not found
         if (is_b == None and self.is_b_turn) or is_b == True:
             coords = [piece.coordinates for piece in self.player_b_pieces if piece.is_master == True]
@@ -36,7 +37,6 @@ class game_state:
             return None
 
 
-
     def is_win(self,is_b = None):
         if is_b == None:
             is_b = self.is_b_turn
@@ -44,10 +44,11 @@ class game_state:
             return self.get_master_coordinates(not(is_b)) == None or self.get_master_coordinates(is_b) == (2,0)
         else:
             return self.get_master_coordinates(not(is_b)) == None or self.get_master_coordinates(is_b) == (-2,0)
+        
+
     def update_is_game_live(self):
         if self.is_win():
             self.is_game_live = False
-
 
 
     def progress_game_state(self,move:move_file.move, should_return = False):
@@ -102,6 +103,7 @@ class game_state:
             moves = [current_piece.future_possible_moves for current_piece in self.player_r_pieces]
             flat_moves = [item for sublist in moves for item in sublist]# consider converting to np array than flattening for performance reasons
             return np.array([move for move in flat_moves if not(move.target in occupied) and move.card in self.player_r_cards])
+        
     
     def display(self): #temporary before gui
         for card in self.player_b_cards:
@@ -114,8 +116,11 @@ class game_state:
         print("middle card")
         self.middle_card.display()
 
+
 def create_game_state(b_pieces,r_pieces,b_cards,r_cards,m_card,is_b):
     return game_state(b_pieces,r_pieces,b_cards,r_cards,m_card,is_b)
+
+
 def create_random_game_state():
     b_pieces = piece_file.piece.create_pieces(5,[(-2,0),(-2,-2),(-2,-1),(-2,1),(-2,2)],[True,True,True,True,True],[True,False,False,False,False])
     r_pieces = piece_file.piece.create_pieces(5,[(2,0),(2,-2),(2,-1),(2,1),(2,2)],[False,False,False,False,False],[True,False,False,False,False])
@@ -127,3 +132,6 @@ def create_random_game_state():
         piece.future_possible_moves = piece.next_moves(g.player_r_cards)
        
     return g
+
+
+
