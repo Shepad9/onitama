@@ -1,14 +1,18 @@
 #----------piece_file.py------------
 
+import numpy as np
+
 import card_file
 import move_file
-import numpy as np
+
+
 class piece:
     def __init__(self, coordinates:tuple, is_blue:bool, is_master:bool, future_possible_moves = np.array([0])):
         self.coordinates = coordinates
         self.is_blue = is_blue
         self.is_master = is_master
         self.future_possible_moves = future_possible_moves
+
 
     def create_pieces(n,coordinates,is_b,is_m):
         lst = []
@@ -18,6 +22,7 @@ class piece:
             lst.append(current_piece)
 
         return lst
+    
     
     def update_future_possible_moves(self,card):  # returns the future possible moves for 1 card and 1 piece
         if self.is_blue : #blue playing down the board
@@ -43,10 +48,10 @@ class piece:
                     )
                 ])
         
+        
     def add_card(self,card):#adds the future possible moves of a new card after a move and a new card is accesible
         return  np.concatenate((self.future_possible_moves, self.update_future_possible_moves(card)))
         
-
              
     def next_moves(self,cards): # returns all future possible moves for the piece with both cards
         return  np.concatenate((self.update_future_possible_moves(cards[0]), self.update_future_possible_moves(cards[1])))
