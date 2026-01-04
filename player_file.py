@@ -1,5 +1,5 @@
 #---------player_file.py----------
-
+from itertools import combinations
 import numpy as np
 import game_state_file
 import move_file
@@ -65,17 +65,19 @@ class full_random(player):
 
     def get_move(self, state):
         #sleep(TIME_TO_MOVE)
-        return random.choice(state.generate_possible_moves())
+        return np.random.choice(state.generate_possible_moves())
 
 
 class computer(player):
     
 
-    def __init__(self, is_blue, depth = SEARCH_DEPTH, weights = {"total pieces": (3.303, 3.694), "piece progression": (0.728, 0.396), "master to temple": (0.3765, 1.5615), "defended pieces": (3.5405, 2.919), "attacked squares": (-0.9385, -0.4885)}, noise = 0):
+    def __init__(self, is_blue, depth = SEARCH_DEPTH, weights = {"total pieces": (2.23728095, 3.47390970), "piece progression": (0.20059365, 1.15610860), "master to temple": (1.29001930, 1.24444460), "defended pieces": (4.27002475, 3.00273980), "piece spread": (-0.23890405, -1.01502485)}
+, noise = 0):
         super().__init__(is_blue)
         self.master_depth = depth
         self.weights = weights
         self.noise = noise
+
 
     def all_accesible_squares(self, state:game_state_file.game_state, is_b = None):
         if is_b == None or is_b == state.is_b_turn:
@@ -83,6 +85,7 @@ class computer(player):
             return set([move.target for move in moves])
         moves = state.generate_possible_moves(False)
         return set([move.target for move in moves])
+    
     
     def master_accesible_squares(self, state:game_state_file.game_state, is_b = None):
         if is_b == None or is_b == state.is_b_turn:
@@ -107,10 +110,12 @@ class computer(player):
             return False
         return True
     
+    
     def which_weighting(self, state:game_state_file.game_state): 
         if len(state.player_b_pieces) + len(state.player_r_pieces) > 7:
             return 0
         return 1
+    
 
     def quiescence_max(self, state:game_state_file.game_state, best_score = -GAME_WIN_SCORE-1):
         if self.is_quiet(state):
@@ -127,6 +132,7 @@ class computer(player):
             if score > best_score:
                 best_score = score
             return best_score
+        
 
     def quiescence_min(self, state:game_state_file.game_state, best_score = GAME_WIN_SCORE+1):
         if self.is_quiet(state):
@@ -141,6 +147,7 @@ class computer(player):
             if score < best_score:
                 best_score = score
             return best_score
+        
 
     def move_ordering_heuristic(self, move:move_file.move, is_b): # higher returns yield high priorities to be checked first
         if is_b:
@@ -159,19 +166,35 @@ class computer(player):
         defended_red = len([location for location in red_possible_targets if location in self.__get_r_piece_coords(state)])
         return defended_blue - defended_red
     
+    
     def __attacked_squares_eval(self, state:game_state_file.game_state): #returns a value from roughly 25 to - 25
         blue_possible_targets = self.all_accesible_squares(state, True)
         red_possible_targets = self.all_accesible_squares(state, False)
         return len(blue_possible_targets) - len(red_possible_targets)
+    
+    
+    def spreadness(self, state:game_state_file.game_state):
+        sum = 0
+        for a, b in combinations(state.player_b_pieces, 2):
+            sum += abs(a.coordinates[0] - b.coordinates[0]) + abs(a.coordinates[1] - b.coordinates[1])
+        for a, b in combinations(state.player_r_pieces, 2):
+            sum -= abs(a.coordinates[0] - b.coordinates[0]) + abs(a.coordinates[1] - b.coordinates[1])
+        return sum
 
         
     def __total_piece_eval(self, state:game_state_file.game_state): # returns a value from -4 to 4
         return len(state.player_b_pieces) - len(state.player_r_pieces)
+    
+
     def __piece_progression_eval(self, state:game_state_file.game_state): # return a value from -15 to 15
         return sum([piece.coordinates[0] for piece in state.player_b_pieces]) + sum([piece.coordinates[0] for piece in state.player_r_pieces])
+    
+
     def __master_to_temple_eval(self, state:game_state_file.game_state): # return a value from -6 to 6
+
         blue_m, red_m = state.get_master_coordinates(True), state.get_master_coordinates(False)
         return blue_m[0] - abs(blue_m[1]) + red_m[0] + abs(red_m[1])
+    
 
     def static_evaluation(self, state:game_state_file.game_state): # red is the minimizimg player
         if state.is_game_live == False:
@@ -180,7 +203,7 @@ class computer(player):
             else:
                 return -GAME_WIN_SCORE
         w = self.which_weighting(state) # below line sums all the heuristics with a weighting
-        return self.__total_piece_eval(state)*self.weights["total pieces"][w] + self.__piece_progression_eval(state)*self.weights["piece progression"][w] + self.__master_to_temple_eval(state)*self.weights["master to temple"][w] + self.__defended_pieces_eval(state)*self.weights["defended pieces"][w] + self.__attacked_squares_eval(state)*self.weights["attacked squares"][w] +random.randint(-5,5) * self.noise
+        return self.__total_piece_eval(state)*self.weights["total pieces"][w] + self.__piece_progression_eval(state)*self.weights["piece progression"][w] + self.__master_to_temple_eval(state)*self.weights["master to temple"][w] + self.__defended_pieces_eval(state)*self.weights["defended pieces"][w] + self.spreadness(state)*self.weights["piece spread"][w] +random.randint(-5,5) * self.noise
 
 
     def maximiser(

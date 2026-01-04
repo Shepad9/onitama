@@ -5,18 +5,20 @@ import game_file
 import player_file
 import gui_file
 
-MAX_MOVES_FOR_RANDOM = 30 # maximmum some games will be shorter
-MIN_MOVES_FOR_RANDOM = 28
-TEST_ACCURACY = 400 #not guaranteed as some positions die in generation
+MAX_MOVES_FOR_RANDOM = 15 # maximmum some games will be shorter
+MIN_MOVES_FOR_RANDOM = 3
+TEST_ACCURACY = 60 #not guaranteed as some positions die in generation
+
 
 def get_dynamic(state):
-    com_b = player_file.computer(True, depth = 5, weights = {"total pieces": (0.9365, 0.9303), "piece progression": (0.09365, 0), "master to temple": (0, 0.31), "defended pieces": (0.281, 0.06201), "attacked squares": (0.1873,0.18605)})
-    com_r = player_file.computer(False, depth = 5, weights = {"total pieces": (0.9365, 0.9303), "piece progression": (0.09365, 0), "master to temple": (0, 0.31), "defended pieces": (0.281, 0.06201), "attacked squares": (0.1873,0.18605)})
+    com_b = player_file.computer(True, depth = 5, weights = {"total pieces": (0.66063, 0.73880), "piece progression": (0.14561, 0.07920), "master to temple": (0.07530, 0.31230), "defended pieces": (0.70814, 0.58380), "piece spread": (-0.18771, -0.09770)})
+    com_r = player_file.computer(False, depth = 5, weights = {"total pieces": (0.66063, 0.73880), "piece progression": (0.14561, 0.07920), "master to temple": (0.07530, 0.31230), "defended pieces": (0.70814, 0.58380), "piece spread": (-0.18771, -0.09770)})
     if state.is_b_turn:
         dyna = com_b.maximiser(state)["score"]
     else:
         dyna = com_r.minimiser(state)["score"]
     return dyna
+
 
 def get_states(): # add the optimal dynamic search value
     game_states = []
@@ -34,7 +36,7 @@ def get_states(): # add the optimal dynamic search value
             if (dyna > -700 and
                 dyna < 700 and 
                 len(g.current_game_state.player_b_pieces) + 
-                len(g.current_game_state.player_r_pieces) <= 7): #ensure first/second weightings
+                len(g.current_game_state.player_r_pieces) > 7): #ensure first/second weightings
                 dynas.append(dyna)
                 game_states.append(g.current_game_state)
                 gui_file.game_display(g.current_game_state)
@@ -42,18 +44,22 @@ def get_states(): # add the optimal dynamic search value
     return game_states, dynas
     # take 15 positions from a file
 
+
 STATES, DYNAS = get_states()
 print(len(DYNAS))
 print(np.mean(DYNAS))
 print(np.mean([abs(dyna) for dyna in DYNAS]))
+
 
 def soft_max_ish(x, y):
     d = math.exp(x)
     s = math.exp(y)
     return abs(d - s) / (d + s + SMALL_NUM)
 
+
 def particle_to_weights(p): # remember total pieces has been doubled for the weighting also I have reduced the computation to 5 dimensions vy ignoring weighting after endgame
-    return {"total pieces": (p[0], p[0]), "piece progression": (p[1], p[1]), "master to temple": (p[2], p[2]), "defended pieces": (p[3], p[3]), "attacked squares": (p[4],p[4])}
+    return {"total pieces": (p[0], p[0]), "piece progression": (p[1], p[1]), "master to temple": (p[2], p[2]), "defended pieces": (p[3], p[3]), "piece spread": (p[4],p[4])}
+
 
 def src_benchmark(particle):
     
@@ -63,8 +69,8 @@ def src_benchmark(particle):
     
     vectorized_src = np.vectorize(get_src, otypes=[float])
 
-
     return sum(vectorized_src(STATES, DYNAS, com_b, com_r)) / len(STATES)
+
 
 def get_src(g1, dyna, com_b, com_r):
     
@@ -73,6 +79,7 @@ def get_src(g1, dyna, com_b, com_r):
     else:
         stat = com_r.quiescence_min(g1)
     return  soft_max_ish(stat, dyna)
+
 
 def show_diversity(positions):
     centroid = np.mean(positions, axis=0) # how alligned are the particles to the mean
@@ -100,7 +107,7 @@ W_over_time = np.linspace(W_max, W_min, ITERATIONS)
 
 print("begining initialisation")
 positions = np.random.randn(NUM_PARTICLES, DIMENSIONS)# everything stored by 1 row per particle
-#positions[0] = [15,0,5,1,3]# known solution
+positions[0] = [0.66063,0.14561,0.07530,0.70814,-0.18771]# known solution
 velocities = np.random.randn(NUM_PARTICLES, DIMENSIONS)*0.1 #keep velocities smaller to prevent them from jumping across hypershere
 positions /= np.linalg.norm(positions, axis=1, keepdims=True) + SMALL_NUM
 
