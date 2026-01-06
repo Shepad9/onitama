@@ -10,6 +10,7 @@ from sys import exit
 from time import time, sleep
 import matplotlib.pyplot as plt
 from pathlib import Path
+import math
 
 import move_file
 import game_state_file
@@ -203,6 +204,14 @@ def load_game(name, blue = player_file.player(True), red = player_file.player(Fa
 TEST_ACCURACY = 30
 MAX_MOVES_FOR_RANDOM = 15
 STAT_MAX = 300
+SMALL_NUM = 1e-9
+
+
+def soft_max_ish(x, y):
+    d = math.exp(x)
+    s = math.exp(y)
+    return abs(d - s) / (d + s + SMALL_NUM)
+
 
 def SRCS(g1):
     com_b = player_file.computer(True)
@@ -215,7 +224,7 @@ def SRCS(g1):
         stat = com_r.quiescence_min(g1)
         dyna = com_r.minimiser(g1)["score"]
     
-    return  abs((stat - dyna) / STAT_MAX)
+    return  soft_max_ish(stat, dyna)
 
 
 def SRCS_avg(): # currently set up for optimisation this is a new benchmark

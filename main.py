@@ -17,4 +17,5 @@ if len(sys.argv) > 1:
     elif sys.argv[1] == "compute_speed":
         game_file.hundred_games()
 
+game_file.main()
 

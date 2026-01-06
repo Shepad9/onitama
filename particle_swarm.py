@@ -162,7 +162,7 @@ for iteration, W in enumerate(W_over_time):
         print(global_best_position)
         show_diversity(positions)
 
-# ---- Result ----
+# show solution
 print("Best solution found:")
 print(global_best_position)
 print("Best score:", global_best_score)
