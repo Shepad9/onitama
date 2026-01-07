@@ -14,7 +14,6 @@ def get_board(state:game_state_file.game_state):
     board = np.reshape(np.array([".."]*25),(5,5))
     for piece in state.player_b_pieces:
         if piece.is_master == True:
-            print(piece.coordinates[0], piece.coordinates[1])
             board[piece.coordinates[0]+2, piece.coordinates[1]+2] = "bk" #blue master
         else:
             board[piece.coordinates[0]+2, piece.coordinates[1]+2] = "bp" #blue pawn
