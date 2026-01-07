@@ -89,7 +89,7 @@ class game:
             self.move_stack.append(move)
             self.current_game_state.progress_game_state(move) # progress game_state
             gui_file.game_display(self.current_game_state)
-        self.show_graph(src, game_progression)
+        self.show_graph(src[:-2], game_progression[:-2])
 
     
     def record_game(self,should_save = True, give_num_moves = False):
@@ -201,10 +201,11 @@ def load_game(name, blue = player_file.player(True), red = player_file.player(Fa
     return game
 
 
-TEST_ACCURACY = 30
+TEST_ACCURACY = 150
 MAX_MOVES_FOR_RANDOM = 15
 STAT_MAX = 300
 SMALL_NUM = 1e-9
+MAD_WEIGHT = 0.2
 
 
 def soft_max_ish(x, y):
@@ -224,7 +225,7 @@ def SRCS(g1):
         stat = com_r.quiescence_min(g1)
         dyna = com_r.minimiser(g1)["score"]
     
-    return  soft_max_ish(stat, dyna)
+    return  abs(stat - dyna)
 
 
 def SRCS_avg(): # currently set up for optimisation this is a new benchmark
@@ -241,8 +242,10 @@ def SRCS_avg(): # currently set up for optimisation this is a new benchmark
             game_states.append(g.current_game_state)
     vectorized_SRCS = np.vectorize(SRCS)
 
-    return sum(vectorized_SRCS(np.array(game_states))) / TEST_ACCURACY
-           
+    scores = vectorized_SRCS(np.array(game_states))
+    mean = np.mean(scores)
+    mad = np.mean(np.abs(scores - mean))
+    return mean + mad * MAD_WEIGHT
 
 LOW_NOISE = 1
 HIGH_NOISE = 3
@@ -314,7 +317,6 @@ def hundred_games():
     # record time or smth
     start = time()
 
-
     for _ in range(20):
         gprime = game.create_random_game(blue, red)
         total_moves += deepcopy(gprime).record_game(should_save=False, give_num_moves = True)
@@ -325,7 +327,6 @@ def hundred_games():
     print("total moves")
     print(total_moves)
 
-main()
 
-
+record_src_over_time()
     

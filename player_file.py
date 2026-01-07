@@ -68,11 +68,11 @@ class computer(player):
             self,
             is_blue,
             depth = SEARCH_DEPTH,
-            weights =  {"total pieces": (2.23728095, 3.47390970),
-                        "piece progression": (0.20059365, 1.15610860),
-                        "master to temple": (1.29001930, 1.24444460),
-                        "defended pieces": (4.27002475, 3.00273980),
-                        "piece spread": (-0.23890405, -1.01502485)},
+            weights =  {"total pieces": (2.1774711, 1.8928169),
+                        "piece progression": (3.0052456, 2.84155485),
+                        "master to temple": (0.85623285, 3.3308354),
+                        "defended pieces": (3.100019, 0.968458),
+                        "piece spread": (-0.9401415, -1.14474225)},
             noise = 0):
         super().__init__(is_blue)
         self.master_depth = depth
@@ -167,7 +167,7 @@ class computer(player):
         defended_blue = len([location for location in blue_possible_targets if location in self.__get_b_piece_coords(state)])
         red_possible_targets = self.all_accesible_squares(state, False)
         defended_red = len([location for location in red_possible_targets if location in self.__get_r_piece_coords(state)])
-        return defended_blue - defended_red
+        return (defended_blue - defended_red) *10/10
     
     
     def __attacked_squares_eval(self, state:game_state_file.game_state): #returns a value from roughly 25 to - 25
@@ -176,27 +176,27 @@ class computer(player):
         return len(blue_possible_targets) - len(red_possible_targets)
     
     
-    def spreadness(self, state:game_state_file.game_state):
+    def spreadness(self, state:game_state_file.game_state):# return a value from 25 to -25
         sum = 0
         for a, b in combinations(state.player_b_pieces, 2):
             sum += abs(a.coordinates[0] - b.coordinates[0]) + abs(a.coordinates[1] - b.coordinates[1])
         for a, b in combinations(state.player_r_pieces, 2):
             sum -= abs(a.coordinates[0] - b.coordinates[0]) + abs(a.coordinates[1] - b.coordinates[1])
-        return sum
+        return sum * 10/18
 
         
     def __total_piece_eval(self, state:game_state_file.game_state): # returns a value from -4 to 4
-        return len(state.player_b_pieces) - len(state.player_r_pieces)
+        return len(state.player_b_pieces) - len(state.player_r_pieces) * 10/4
     
 
     def __piece_progression_eval(self, state:game_state_file.game_state): # return a value from -15 to 15
-        return sum([piece.coordinates[0] for piece in state.player_b_pieces]) + sum([piece.coordinates[0] for piece in state.player_r_pieces])
+        return sum([piece.coordinates[0] for piece in state.player_b_pieces]) + sum([piece.coordinates[0] for piece in state.player_r_pieces]) * 10/15
     
 
     def __master_to_temple_eval(self, state:game_state_file.game_state): # return a value from -6 to 6
 
         blue_m, red_m = state.get_master_coordinates(True), state.get_master_coordinates(False)
-        return blue_m[0] - abs(blue_m[1]) + red_m[0] + abs(red_m[1])
+        return (blue_m[0] - abs(blue_m[1]) + red_m[0] + abs(red_m[1])) * 10/6
     
 
     def static_evaluation(self, state:game_state_file.game_state): # red is the minimizimg player
