@@ -202,10 +202,10 @@ def load_game(name, blue = player_file.player(True), red = player_file.player(Fa
 
 
 TEST_ACCURACY = 150
-MAX_MOVES_FOR_RANDOM = 15
+MAX_MOVES_FOR_RANDOM = 22
 STAT_MAX = 300
 SMALL_NUM = 1e-9
-MAD_WEIGHT = 0.2
+MAD_WEIGHT = 0.1
 
 
 def soft_max_ish(x, y):

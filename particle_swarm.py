@@ -1,7 +1,6 @@
 #---------particle_swarm.py--------
 
 import numpy as np
-import math
 
 import game_file
 import player_file

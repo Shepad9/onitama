@@ -31,7 +31,7 @@ WIDTH, HEIGHT = 700, 1100
 ROWS, COLS = 5, 5
 SQUARE_SIZE =  60
 
-window = pygame.display.set_mode((WIDTH, HEIGHT))
+window = pygame.display.set_mode((WIDTH, HEIGHT),pygame.SCALED)
 pygame.display.set_caption("Onitama game")
 
 
