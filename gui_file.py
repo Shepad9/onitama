@@ -14,14 +14,15 @@ def get_board(state:game_state_file.game_state):
     board = np.reshape(np.array([".."]*25),(5,5))
     for piece in state.player_b_pieces:
         if piece.is_master == True:
-            board[piece.coordinates[0]+2][piece.coordinates[1]+2] = "bk" #blue master
+            print(piece.coordinates[0], piece.coordinates[1])
+            board[piece.coordinates[0]+2, piece.coordinates[1]+2] = "bk" #blue master
         else:
-            board[piece.coordinates[0]+2][piece.coordinates[1]+2] = "bp" #blue pawn
+            board[piece.coordinates[0]+2, piece.coordinates[1]+2] = "bp" #blue pawn
     for piece in state.player_r_pieces:
         if piece.is_master == True:
-            board[piece.coordinates[0]+2][piece.coordinates[1]+2] = "wk" #red master
+            board[piece.coordinates[0]+2, piece.coordinates[1]+2] = "wk" #red master
         else:
-            board[piece.coordinates[0]+2][piece.coordinates[1]+2] = "wp" #red pawn
+            board[piece.coordinates[0]+2, piece.coordinates[1]+2] = "wp" #red pawn
     return board
 
 
@@ -30,9 +31,22 @@ pygame.init()
 WIDTH, HEIGHT = 700, 1100
 ROWS, COLS = 5, 5
 SQUARE_SIZE =  60
+SCREEN_SCALE_X = 0.4
+SCREEN_SCALE_Y = 0.8
 
-window = pygame.display.set_mode((WIDTH, HEIGHT),pygame.SCALED)
+display_info = pygame.display.Info()
+WINDOW_WIDTH = int(display_info.current_w * SCREEN_SCALE_X)
+WINDOW_HEIGHT = int(display_info.current_h * SCREEN_SCALE_Y)
+
+# Create the window
+display_window = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
 pygame.display.set_caption("Onitama game")
+
+scale_x = WIDTH / WINDOW_WIDTH
+scale_y = HEIGHT / WINDOW_HEIGHT
+
+window = pygame.Surface((WIDTH, HEIGHT))
+
 
 
 GREY = (88, 94, 99)
@@ -144,6 +158,13 @@ for piece in ["bk", "bp", "wk", "wp"]:
     )
 
 
+def scaled_display():
+    scaled_surface = pygame.transform.smoothscale(window, (WINDOW_WIDTH, WINDOW_HEIGHT))
+    display_window.blit(scaled_surface, (0, 0))
+
+    pygame.display.flip()
+
+
 def should_review(winner:bool):
     if not(winner):
         window.fill(LIGHT_BLUE)
@@ -151,7 +172,7 @@ def should_review(winner:bool):
         window.fill(LIGHT_RED)
     window.blit(review_surface,(new_game_button.x + 5, new_game_button.y + 5))
     window.blit(new_game_surface,(load_game_button.x + 5, load_game_button.y + 5))
-    pygame.display.flip()
+    scaled_display()
     running = True
     while running:
         for event in pygame.event.get():
@@ -160,9 +181,11 @@ def should_review(winner:bool):
                 sys.exit()
 
             if event.type == pygame.MOUSEBUTTONDOWN:
-                if new_game_button.collidepoint(event.pos):
+                x, y = event.pos
+                x, y = x*scale_x, y*scale_y
+                if new_game_button.collidepoint((x,y)):
                     return True
-                elif load_game_button.collidepoint(event.pos):
+                elif load_game_button.collidepoint((x,y)):
                     return False
                 
 
@@ -238,7 +261,7 @@ def game_display(
     window.blit(down_arrow, (640, 0))
     window.blit(right_arrow, (0,350))
 
-    pygame.display.flip()
+    scaled_display()
 
 
 def text_wrapper(text, width_max, font): #written like a greedy algorithm (rare serious code for this file) for instructions thing
@@ -306,7 +329,7 @@ def instructions_display():
             window.blit(text_surface, (15, y)) #15 is space to left, probably should be a global 
             y += line_height
 
-        pygame.display.flip()
+        scaled_display()
         clock.tick(30)
 
 
@@ -319,20 +342,22 @@ def gui_select_square():
                 sys.exit()
 
             if event.type == pygame.MOUSEBUTTONDOWN:
-                if save_button.collidepoint(event.pos):
+                x, y = event.pos
+                x, y = x*scale_x, y*scale_y
+                if save_button.collidepoint((x,y)):
                     return "save_command"
-                if undo_button.collidepoint(event.pos):
+                if undo_button.collidepoint((x,y)):
                     return "undo_command"
-                if hint_button.collidepoint(event.pos):
+                if hint_button.collidepoint((x,y)):
                     return "hint_command"
-                if move_button.collidepoint(event.pos):
+                if move_button.collidepoint((x,y)):
                     return "move_command"
-                if instructions_button.collidepoint(event.pos):
+                if instructions_button.collidepoint((x,y)):
                     return "instructions_command"
                 else:
                     pos = pygame.mouse.get_pos()
-                    col = ((pos[0]-400) // SQUARE_SIZE) -2
-                    row = ((pos[1]-350) // SQUARE_SIZE) -2
+                    col = int(((pos[0] * scale_x)-400) // SQUARE_SIZE) -2
+                    row = int(((pos[1] * scale_y)-350) // SQUARE_SIZE) -2
                     return (row, col)
         
  
@@ -346,13 +371,15 @@ def get_card(): # returns tuple (-1,-1) didnt click on a card else first number 
 
             if event.type == pygame.MOUSEBUTTONDOWN:
                 pos = pygame.mouse.get_pos()
-                if pos[0] < 300 and pos[1] < 300:
+                x, y = pos
+                x, y = x*scale_x, y*scale_y
+                if x < 300 and y < 300:
                     return (0,0)
-                elif pos[0] > 400 and pos[1] < 300:
+                elif x > 400 and y < 300:
                     return (0,1)
-                elif pos[0] < 300 and pos[1] > 700:
+                elif x < 300 and y > 700:
                     return (1,0)
-                elif pos[0] > 400 and pos[1] > 700:
+                elif x > 400 and y > 700:
                     return (1,1)
                 else:
                     return (-1,-1)
@@ -392,7 +419,7 @@ def get_players(blue = "player", red = "player"):
         pygame.draw.rect(window, YELLOW_HIGHLIGHT, (diff3_button_red.x, diff3_button_red.y, 150, 50), 4)
     elif red == "player":
         pygame.draw.rect(window, YELLOW_HIGHLIGHT, (player_button_red.x, player_button_red.y, 150, 50), 4)
-    pygame.display.flip()
+    scaled_display()
     running = True
     while running:
         for event in pygame.event.get():
@@ -401,23 +428,25 @@ def get_players(blue = "player", red = "player"):
                 sys.exit()
 
             if event.type == pygame.MOUSEBUTTONDOWN:
-                if diff1_button_blue.collidepoint(event.pos):
+                x, y = event.pos
+                x, y = x*scale_x, y*scale_y
+                if diff1_button_blue.collidepoint((x,y)):
                     return get_players("diff1", red)
-                elif diff2_button_blue.collidepoint(event.pos):
+                elif diff2_button_blue.collidepoint((x,y)):
                     return get_players("diff2", red)
-                elif diff3_button_blue.collidepoint(event.pos):
+                elif diff3_button_blue.collidepoint((x,y)):
                     return get_players("diff3", red)
-                elif player_button_blue.collidepoint(event.pos):
+                elif player_button_blue.collidepoint((x,y)):
                     return get_players("player", red)
-                elif diff1_button_red.collidepoint(event.pos):
+                elif diff1_button_red.collidepoint((x,y)):
                     return get_players(blue, "diff1")
-                elif diff2_button_red.collidepoint(event.pos):
+                elif diff2_button_red.collidepoint((x,y)):
                     return get_players(blue, "diff2")
-                elif diff3_button_red.collidepoint(event.pos):
+                elif diff3_button_red.collidepoint((x,y)):
                     return get_players(blue, "diff3")
-                elif player_button_red.collidepoint(event.pos):
+                elif player_button_red.collidepoint((x,y)):
                     return get_players(blue, "player")
-                elif confirm_button.collidepoint(event.pos):
+                elif confirm_button.collidepoint((x,y)):
                     return (blue, red)
                 
     
@@ -425,7 +454,7 @@ def get_game_file_type(): # returns is new game
     window.fill(GREY)
     window.blit(new_game_surface,(new_game_button.x + 5, new_game_button.y + 5))
     window.blit(load_game_surface,(load_game_button.x + 5, load_game_button.y + 5))
-    pygame.display.flip()
+    scaled_display()
     running = True
     while running:
         for event in pygame.event.get():
@@ -434,9 +463,11 @@ def get_game_file_type(): # returns is new game
                 sys.exit()
 
             if event.type == pygame.MOUSEBUTTONDOWN:
-                if new_game_button.collidepoint(event.pos):
+                x, y = event.pos
+                x, y = x*scale_x, y*scale_y
+                if new_game_button.collidepoint((x,y)):
                     return True
-                elif load_game_button.collidepoint(event.pos):
+                elif load_game_button.collidepoint((x,y)):
                     return False
                 
             
@@ -449,9 +480,11 @@ def is_correct_game_file():
                 sys.exit()
 
             if event.type == pygame.MOUSEBUTTONDOWN:
-                if save_button.collidepoint(event.pos):
+                x, y = event.pos
+                x, y = x*scale_x, y*scale_y
+                if save_button.collidepoint((x,y)):
                     return False
-                elif undo_button.collidepoint(event.pos):
+                elif undo_button.collidepoint((x,y)):
                     return True
                 
                 
@@ -464,13 +497,15 @@ def review_command():
                 sys.exit()
 
             if event.type == pygame.MOUSEBUTTONDOWN:
-                if save_button.collidepoint(event.pos):
+                x, y = event.pos
+                x, y = x*scale_x, y*scale_y
+                if save_button.collidepoint((x,y)):
                     return "progress"
-                elif undo_button.collidepoint(event.pos):
+                elif undo_button.collidepoint((x,y)):
                     return "undo"
-                elif hint_button.collidepoint(event.pos):
+                elif hint_button.collidepoint((x,y)):
                     return "quit"
-                elif move_button.collidepoint(event.pos):
+                elif move_button.collidepoint((x,y)):
                     return "move"
                 
             
