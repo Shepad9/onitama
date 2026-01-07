@@ -5,6 +5,7 @@ import numpy as np
 import random
 from time import sleep
 from copy import deepcopy
+from copy import copy
 import sys
 
 import game_state_file

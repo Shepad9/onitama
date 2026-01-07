@@ -214,6 +214,7 @@ def soft_max_ish(x, y):
     return abs(d - s) / (d + s + SMALL_NUM)
 
 
+
 def SRCS(g1):
     com_b = player_file.computer(True)
     com_r = player_file.computer(False)   
@@ -328,5 +329,4 @@ def hundred_games():
     print(total_moves)
 
 
-record_src_over_time()
     
