@@ -30,7 +30,7 @@ pygame.init()
 WIDTH, HEIGHT = 700, 1100
 ROWS, COLS = 5, 5
 SQUARE_SIZE =  60
-SCREEN_SCALE_X = 0.4
+SCREEN_SCALE_X = 0.3
 SCREEN_SCALE_Y = 0.8
 
 display_info = pygame.display.Info()

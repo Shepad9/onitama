@@ -7,17 +7,36 @@ from time import sleep
 from copy import deepcopy
 from copy import copy
 import sys
+import json
+from pathlib import Path
 
 import game_state_file
 import move_file
 import gui_file
- 
+
+BASE_PATH = Path(__file__).resolve().parent
+
 GAME_WIN_SCORE = 700
 TIME_TO_MOVE = 2 #seconds
 SEARCH_DEPTH = 3
-if len(sys.argv) > 2:
+if len(sys.argv) > 2: # depth
     SEARCH_DEPTH = int(sys.argv[2])
 
+if len(sys.argv) > 3: # weights
+    if sys.argv[3] == "pso2":
+        with open(f"{BASE_PATH}/weights/stable_pso_gen2.json", "r") as f:
+            WEIGHTS = json.load(f)
+    if sys.argv[3] == "atk":
+        with open(f"{BASE_PATH}/weights/attacking_weights.json", "r") as f:
+            WEIGHTS = json.load(f)
+    if sys.argv[3] == "def":
+        with open(f"{BASE_PATH}/weights/defending_weights.json", "r") as f:
+            WEIGHTS = json.load(f)
+else:
+    with open(f"{BASE_PATH}/weights/stable_pso_gen2.json", "r") as f:
+        WEIGHTS = json.load(f)
+
+WEIGHTS = {k: tuple(v) for k, v in WEIGHTS.items()}
 
 class player:
     def __init__(self,is_blue): 
@@ -69,11 +88,7 @@ class computer(player):
             self,
             is_blue,
             depth = SEARCH_DEPTH,
-            weights =  {"total pieces": (2.1774711, 1.8928169),
-                        "piece progression": (3.0052456, 2.84155485),
-                        "master to temple": (0.85623285, 3.3308354),
-                        "defended pieces": (3.100019, 0.968458),
-                        "piece spread": (-0.9401415, -1.14474225)},
+            weights =  WEIGHTS,
             noise = 0):
         super().__init__(is_blue)
         self.master_depth = depth
