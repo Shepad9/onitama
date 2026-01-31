@@ -46,7 +46,7 @@ scale_y = HEIGHT / WINDOW_HEIGHT
 
 window = pygame.Surface((WIDTH, HEIGHT))
 
-
+pygame.mouse.set_visible(True)
 
 GREY = (88, 94, 99)
 WHITE = (255, 255, 255)
