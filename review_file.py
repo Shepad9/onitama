@@ -24,7 +24,7 @@ class review:
             gui_file.game_display(self.current_game_state, is_review=True)
 
 
-    def regress(self):
+    def regress(self): #plays game from scratch to get the game state one before
         if self.move_index > 0:
             self.current_game_state = deepcopy(self.initial_game_state)
             self.move_index -= 1

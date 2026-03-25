@@ -317,5 +317,8 @@ class computer(player):
         move = ret["best_line"][-1] # force an integer as that is what the main game expects rather than numpy int.64
         return move_file.move(move.card ,tuple([int(x) for x in move.target]), move.source)
         
+# overall the get move is always called (polymorphism)
+# for computer player --> get move --> maximiser/miniser --> quiescence --> static eval
+# player is default class (human) full random and computer are inheritances of this
     
 

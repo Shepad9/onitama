@@ -67,7 +67,7 @@ class game_state:
         self.update_is_game_live()
         # swap cards
         if self.is_b_turn:
-            self.player_b_cards.remove(move.card)
+            self.player_b_cards.remove(move.card) # order is important
             self.player_b_cards.append(self.middle_card)
         else:
             self.player_r_cards.remove(move.card)

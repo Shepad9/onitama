@@ -57,7 +57,7 @@ class game:
         while self.current_game_state.is_game_live: 
             move = self.__get_active_player().get_move(self.current_game_state) # get move
             if type(move) == str:
-                if move == "save_command":
+                if move == "save_command": #string messages to preent circular import issue coming back from gui
                     self.save_game()
                 elif move == "undo_command":
                     self.undo()
@@ -137,7 +137,7 @@ class game:
             main()
     
 
-    def undo(self):
+    def undo(self): # recreates state from scratch
         
         self.current_game_state = deepcopy(self.initial_game_state)
         self.move_stack = self.move_stack[:- MOVES_TO_UNDO]
@@ -159,7 +159,7 @@ class game:
         self.play_game()
 
 
-def reconstruct_ini_state(cards):
+def reconstruct_ini_state(cards): # first piece in list is master, cards in order blue, blue, red, red, middle
     b_pieces = piece_file.piece.create_pieces(5,[(-2,0),(-2,-2),(-2,-1),(-2,1),(-2,2)],[True,True,True,True,True],[True,False,False,False,False])
     r_pieces = piece_file.piece.create_pieces(5,[(2,0),(2,-2),(2,-1),(2,1),(2,2)],[False,False,False,False,False],[True,False,False,False,False])
     g = game_state_file.game_state(b_pieces,r_pieces,[cards[0],cards[1]],[cards[2],cards[3]],cards[4],cards[4].is_stamp_blue) 
@@ -209,7 +209,7 @@ MAD_WEIGHT = 0.1
 
 
 def soft_max_ish(x, y):
-    d = math.exp(x)
+    d = math.exp(x) #basically distance from x = y GAME WIN SCORE kept below 700 as exp(>710) causes crash
     s = math.exp(y)
     return abs(d - s) / (d + s + SMALL_NUM)
 
