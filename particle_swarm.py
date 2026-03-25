@@ -133,7 +133,7 @@ for iteration, W in enumerate(W_over_time):
 
         v = velocities[i]
         x = positions[i]
-        velocities[i] = v - np.dot(v, x) * x # make velocities tangental
+        velocities[i] = v - np.dot(v, x) * x # make velocities tangental, no radial component
 
         v_norm = np.linalg.norm(velocities[i])
         if v_norm > V_max:

@@ -121,16 +121,16 @@ class computer(player):
 
 
     def is_quiet(self, state:game_state_file.game_state): # quiet means game cannot be won on the next turn
-        master_targets = self.master_accesible_squares(state)
+        master_targets = self.master_accesible_squares(state) # only guarding against game win positions so only master is relevent
         if state.is_b_turn == True and (state.get_master_coordinates(False) in master_targets or (2,0) in master_targets):
-            return False
+            return False 
         if state.is_b_turn == False and (state.get_master_coordinates(True) in master_targets or (-2,0) in master_targets):
             return False
         return True
     
     
     def which_weighting(self, state:game_state_file.game_state): 
-        if len(state.player_b_pieces) + len(state.player_r_pieces) > 7:
+        if len(state.player_b_pieces) + len(state.player_r_pieces) > 7: # arbitrary early game to late game threshold
             return 0
         return 1
     
@@ -146,7 +146,7 @@ class computer(player):
             working_state.progress_game_state(potential_move)
             score = self.quiescence_min(working_state, best_score)
             if score == None:
-                raise Exception("why is score none")
+                raise Exception("why is score none") # for debugging
             if score > best_score:
                 best_score = score
             return best_score
@@ -173,7 +173,7 @@ class computer(player):
         return move.target[0] - move.source[0]
     
 
-    def heuristic_move_sorter(self, moves:np.array, is_b):
+    def heuristic_move_sorter(self, moves:np.array, is_b): #sorts based on move ordering heuristic
         heuristic_move_mask = np.argsort(np.array([self.move_ordering_heuristic(move, is_b) for move in moves]))
         return np.take_along_axis(moves, heuristic_move_mask, axis = 0)
 
@@ -193,9 +193,9 @@ class computer(player):
     
     
     def spreadness(self, state:game_state_file.game_state):# return a value from 25 to -25
-        sum = 0
+        sum = 0 # gets mean distance in straight lines, no diagonals
         for a, b in combinations(state.player_b_pieces, 2):
-            sum += abs(a.coordinates[0] - b.coordinates[0]) + abs(a.coordinates[1] - b.coordinates[1])
+            sum += abs(a.coordinates[0] - b.coordinates[0]) + abs(a.coordinates[1] - b.coordinates[1]) 
         for a, b in combinations(state.player_r_pieces, 2):
             sum -= abs(a.coordinates[0] - b.coordinates[0]) + abs(a.coordinates[1] - b.coordinates[1])
         return sum * 10/18
@@ -248,7 +248,7 @@ class computer(player):
         for potential_move in all_moves:
             working_state = deepcopy(state) # prevents errors caused by python passing references rather than values
             working_state.progress_game_state(potential_move)
-            # does something... probably?
+            
             ret = self.minimiser(
                 working_state, 
                 depth - 1, 
@@ -258,7 +258,7 @@ class computer(player):
             )
             current_score, asc_current_line = ret["score"] , ret["asc_line"] + [potential_move]
              # recursive call 
-            if current_score >= beta: # beta cutoff
+            if current_score >= beta: # beta cutoff as we know mimimiser would never allow a score this high
                 return {"score":beta, "asc_line":asc_current_line,"best_line": best_line} #beta cutoff
             if current_score > alpha: # found a new best move
                 alpha = current_score
@@ -314,7 +314,7 @@ class computer(player):
         else:
             ret = self.minimiser(state, depth = self.master_depth)
         
-        move = ret["best_line"][-1]
+        move = ret["best_line"][-1] # force an integer as that is what the main game expects rather than numpy int.64
         return move_file.move(move.card ,tuple([int(x) for x in move.target]), move.source)
         
     

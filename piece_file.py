@@ -30,13 +30,13 @@ class piece:
                 move_file.move(card,(self.coordinates[0] + delta[0], self.coordinates[1] + delta[1]), self.coordinates)
                 for delta in card.movement_abilities
                 if (
-                    (delta[0] + self.coordinates[0] < 3) and
+                    (delta[0] + self.coordinates[0] < 3) and #board only valid for -2 to 2 (<3)
                     (delta[1] + self.coordinates[1] < 3) and
                     (delta[0] + self.coordinates[0] > -3) and
                     (delta[1] + self.coordinates[1] > -3)
                     )
                 ])
-        else: # red playing up the board
+        else: # red playing up the board so use minus as cards rotated 
              return  np.array([
                 move_file.move(card,(self.coordinates[0] - delta[0], self.coordinates[1] - delta[1]), self.coordinates)
                 for delta in card.movement_abilities
