@@ -93,15 +93,15 @@ player_surface = FONT.render("human player", True, BLACK)
 player_button_blue = pygame.draw.rect(window, WHITE, (450, 150, 150, 50))
 player_button_red = pygame.draw.rect(window, WHITE, (450, 700, 150, 50))
 
-diff1_surface = FONT.render("diificulty level 1", True, BLACK)
+diff1_surface = FONT.render("dificulty level 1", True, BLACK)
 diff1_button_blue = pygame.draw.rect(window, WHITE, (150, 300, 150, 50))
 diff1_button_red = pygame.draw.rect(window, WHITE, (150, 850, 150, 50))
 
-diff2_surface = FONT.render("diificulty level 2", True, BLACK)
+diff2_surface = FONT.render("dificulty level 2", True, BLACK)
 diff2_button_blue = pygame.draw.rect(window, WHITE, (150, 350, 150, 50))
 diff2_button_red = pygame.draw.rect(window, WHITE, (150, 900, 150, 50))
 
-diff3_surface = FONT.render("diificulty level 3", True, BLACK)
+diff3_surface = FONT.render("dificulty level 3", True, BLACK)
 diff3_button_blue = pygame.draw.rect(window, WHITE, (150, 400, 150, 50))
 diff3_button_red = pygame.draw.rect(window, WHITE, (150, 950, 150, 50))
 
