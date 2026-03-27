@@ -1,6 +1,7 @@
 #-----------test_stuff.py-----------
 
 import numpy as np
+import time
 
 import player_file
 import card_file
@@ -9,6 +10,8 @@ import move_file
 import game_state_file
 import game_file
 
+default_blue = player_file.computer(True)
+default_red = player_file.computer(False)
 
 def test_update_future_possible_moves_1():
     p1 = piece_file.piece((0,0),False,False)
@@ -114,21 +117,6 @@ def test_find_master_4():
     g3 = create_g3()
     assert g3.get_master_coordinates(False) == None
 
-
-def test_is_win_1():
-    g1 = create_g1()
-    assert g1.is_win() == False
-
-
-def test_is_win_2():
-    g1 = create_g3()
-    assert g1.is_win() == True
-
-    
-def test_is_win_3():
-    g1 = create_g4()
-    assert g1.is_win() == True
-
     
 def test_static_eval_1():
     g1 = create_g1()
@@ -182,5 +170,54 @@ def test_heuristic_move_sorter():
     m2 = move_file.move(card_file.card.create_card("Crane"),(2,0),(1,1))
     assert np.all(p1.heuristic_move_sorter(np.array([m1,m2]),False) == np.array([m2,m1]))
 
+
+def test_random_initial_state():
+    g1 = game_state_file.create_random_game_state()
+    g2 = game_state_file.create_random_game_state()
+    assert g1.player_b_cards + g1.player_r_cards != g2.player_b_cards + g2.player_r_cards
+
+
+def test_card_cycling():
+    g = game_file.game.create_random_game(default_blue, default_red)
+    cards = set(
+        [g.current_game_state.middle_card] + 
+        g.current_game_state.player_b_cards + 
+        g.current_game_state.player_r_cards
+        )
+    move = g._game__get_active_player().get_move(g.current_game_state)
+    g.current_game_state.progress_game_state(move)
+    assert move.card == g.current_game_state.middle_card and set(
+        [g.current_game_state.middle_card] + 
+        g.current_game_state.player_b_cards + 
+        g.current_game_state.player_r_cards
+        ) == cards
+    
+
+def test_is_win_1():
+    g1 = create_g1()
+    assert g1.is_win() == False
+
+
+def test_is_win_2():
+    g1 = create_g3()
+    assert g1.is_win() == True
+
+    
+def test_is_win_3():
+    g1 = create_g4()
+    assert g1.is_win() == True
+
+
+def test_search_speed():
+    g = game_file.game.create_random_game(default_blue, default_red)
+    s = time.time()
+    move = g._game__get_active_player().get_move(g.current_game_state)
+    e = time.time()
+    assert (s-e) < 3
+    
+
+def test_game_wins_not_missed():
+    g = game_file.load_game("game_win.txt", folder = "test_games")
+    assert default_blue.minimiser(g.current_game_state)["score"] == -700
 
 

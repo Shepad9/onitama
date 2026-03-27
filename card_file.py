@@ -42,6 +42,9 @@ class card:
 
     def __eq__(self, other):
         return self.name == other.name
+    
+    def __hash__(self): # used only for tests
+        return sum([ord(x) for x in self.name])
         
 
 
