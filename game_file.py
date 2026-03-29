@@ -187,18 +187,21 @@ def create_game(g, blue, red) -> game:
 
 
 def load_game(name, blue = player_file.player(True), red = player_file.player(False), folder = "saves") -> game:
-    with open(f"{BASE_PATH}/{folder}/{name}") as infile:
-        game_string = json.load(infile)
-        cards, dict_moves = game_string["cards"], game_string["moves"]
-        infile.close()
-    initial_state = reconstruct_ini_state([card_file.card.create_card(card) for card in cards])
-    game = create_game(initial_state, blue, red)
-    moves = [dict_to_move(temp) for temp in dict_moves] # converts the json dict back to object form
-    for move in moves:
-        game.current_game_state.progress_game_state(move)
-    game.move_stack = moves
-    gui_file.game_display(game.current_game_state, is_file_cycling = True)
-    return game
+    try:
+        with open(f"{BASE_PATH}/{folder}/{name}") as infile:
+            game_string = json.load(infile)
+            cards, dict_moves = game_string["cards"], game_string["moves"]
+            infile.close()
+        initial_state = reconstruct_ini_state([card_file.card.create_card(card) for card in cards])
+        game = create_game(initial_state, blue, red)
+        moves = [dict_to_move(temp) for temp in dict_moves] # converts the json dict back to object form
+        for move in moves:
+            game.current_game_state.progress_game_state(move)
+        game.move_stack = moves
+        gui_file.game_display(game.current_game_state, is_file_cycling = True)
+        return game
+    except:
+        return "loading failed"
 
 
 TEST_ACCURACY = 150

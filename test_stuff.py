@@ -213,7 +213,7 @@ def test_search_speed():
     s = time.time()
     move = g._game__get_active_player().get_move(g.current_game_state)
     e = time.time()
-    assert (s-e) < 3
+    assert (e - s) < 3
     
 
 def test_game_wins_not_missed():
@@ -221,3 +221,17 @@ def test_game_wins_not_missed():
     assert default_blue.minimiser(g.current_game_state)["score"] == -700
 
 
+def test_loading_invalid_file():
+    g = game_file.load_game("invalid_file", folder = "test_games")
+    assert g == "loading failed"
+
+
+def test_load_imaginary_file():
+    g = game_file.load_game("non_existent_file", folder = "test_games")
+    assert g == "loading failed"
+
+
+def test_undo_at_start_of_game():
+    g = game_file.game.create_random_game(default_blue, default_red)
+    g.undo()
+    assert g.move_stack == []
